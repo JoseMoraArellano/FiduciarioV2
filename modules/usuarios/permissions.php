@@ -163,24 +163,26 @@ if (!empty($usuario['firstname']) || !empty($usuario['lastname'])) {
             </div>
         </div>
         
-        <!-- Tabs -->
+         <!-- Tabs -->
         <div class="border-t">
-            <nav class="flex -mb-px">
-                
-                    href="?mod=usuarios&action=permissions&id=<?php echo $userId; ?>&tab=permissions"
-                    class="px-6 py-3 border-b-2 font-medium text-sm transition <?php echo $activeTab === 'permissions' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'; ?>"
-                >
-                    <i class="fas fa-shield-alt mr-2"></i>
-                    Permisos Individuales
-                </a>
-                
-                    href="?mod=usuarios&action=permissions&id=<?php echo $userId; ?>&tab=groups"
-                    class="px-6 py-3 border-b-2 font-medium text-sm transition <?php echo $activeTab === 'groups' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'; ?>"
-                >
-                    <i class="fas fa-users mr-2"></i>
-                    Grupos
-                </a>
-            </nav>
+<nav class="flex -mb-px">
+    <a
+        href="catalogos.php?mod=usuarios&action=permissions&id=<?php echo $userId; ?>&tab=permissions"
+        class="px-6 py-3 border-b-2 font-medium text-sm transition <?php echo $activeTab === 'permissions' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'; ?>"
+    >
+        <i class="fas fa-shield-alt mr-2"></i>
+        Permisos Individuales
+    </a>
+
+    <a
+        href="catalogos.php?mod=usuarios&action=permissions&id=<?php echo $userId; ?>&tab=groups"
+        class="px-6 py-3 border-b-2 font-medium text-sm transition <?php echo $activeTab === 'groups' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'; ?>"
+    >
+        <i class="fas fa-users mr-2"></i>
+        Grupos
+    </a>
+</nav>
+
         </div>
     </div>
 

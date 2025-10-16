@@ -118,7 +118,13 @@ $canDelete = $isAdmin || $session->hasPermission('catalogos', 'supprimer', 'usua
                         <i class="fas fa-file-excel"></i>
                         <span class="hidden md:inline">Exportar</span>
                     </button>
-                    
+                    <a 
+                        href="catalogos.php?mod=grupos&action=list"
+                        class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition flex items-center gap-2"
+                    >
+                        <i class="fas fa-users-cog"></i>
+                        <span class="hidden md:inline">Gestionar Grupos</span>
+                    </a>
                     <!-- Botón Crear -->
                     <?php if ($canCreate): ?>
                     <a 

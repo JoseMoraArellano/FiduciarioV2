@@ -73,6 +73,12 @@ $modulesMetadata = [
         'description' => 'Administra usuarios del sistema, permisos y grupos',
         'path' => 'modules/usuarios/'
     ],
+    'grupos' => [
+        'title' => 'Gestión de Grupos',
+        'icon' => 'fa-users-cog',
+        'description' => 'Administra grupos de usuarios y sus permisos',
+        'path' => 'modules/grupos/'
+    ],
     'honorarios' => [
         'title' => 'Honorarios',
         'icon' => 'fa-money-bill-wave',
