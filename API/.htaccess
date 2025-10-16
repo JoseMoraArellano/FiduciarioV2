@@ -1,0 +1,29 @@
+# Seguridad para carpeta API
+
+# Permitir solo métodos específicos
+<LimitExcept GET POST>
+    Order deny,allow
+    Deny from all
+</LimitExcept>
+
+# Proteger archivos sensibles
+<Files "*.php">
+    Order allow,deny
+    Allow from all
+</Files>
+
+# Headers de seguridad
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# No mostrar listado de directorios
+Options -Indexes
+
+# PHP Settings
+<IfModule mod_php7.c>
+    php_flag display_errors Off
+    php_flag log_errors On
+</IfModule>

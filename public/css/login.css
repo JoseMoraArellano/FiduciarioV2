@@ -1,0 +1,293 @@
+/**
+ * Estilos adicionales para login.php
+ * Complementa a Tailwind CSS con animaciones y efectos personalizados
+ */
+
+/* Animación de entrada suave */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+body {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Animación del card principal */
+.bg-white {
+    animation: fadeInUp 0.8s ease-out 0.2s backwards;
+}
+
+/* Efecto de foco mejorado en inputs */
+input:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Animación del placeholder */
+input::placeholder {
+    transition: opacity 0.3s ease;
+}
+
+input:focus::placeholder {
+    opacity: 0.5;
+}
+
+/* Efecto hover en botones */
+button:not(:disabled):hover {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+/* Botones deshabilitados */
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Animación del icono de ojo al cambiar */
+#eyeIcon {
+    transition: all 0.3s ease;
+}
+
+#eyeIcon.fa-eye-slash {
+    transform: scale(1.1);
+}
+
+/* Efecto ripple en el botón de submit */
+button[type="submit"] {
+    position: relative;
+    overflow: hidden;
+}
+
+button[type="submit"]::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+button[type="submit"]:active::after {
+    width: 300px;
+    height: 300px;
+}
+
+/* Animación para mensajes de error/éxito */
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.bg-red-50, .bg-green-50 {
+    animation: slideInLeft 0.4s ease-out;
+}
+
+/* Mejora visual del checkbox */
+input[type="checkbox"] {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+input[type="checkbox"]:checked {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+input[type="checkbox"]:focus {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Efecto hover en links */
+a {
+    position: relative;
+}
+
+a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: currentColor;
+    transition: width 0.3s ease;
+}
+
+a:hover::after {
+    width: 100%;
+}
+
+/* Animación del icono principal */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.fa-briefcase {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Gradiente animado en el header */
+.bg-gradient-to-r {
+    background-size: 200% 200%;
+    animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Efecto de loading en el botón submit */
+button[type="submit"].loading {
+    pointer-events: none;
+    position: relative;
+}
+
+button[type="submit"].loading::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin-left: -10px;
+    margin-top: -10px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Mejora visual de los botones OAuth */
+.grid button:disabled {
+    background-color: #f9fafb;
+    cursor: not-allowed;
+}
+
+.grid button:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Divider mejorado */
+.relative span {
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+/* Footer con efecto de glassmorphism */
+.text-white.text-sm {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .bg-white {
+        border-radius: 1rem;
+    }
+    
+    .p-8 {
+        padding: 1.5rem;
+    }
+    
+    .text-3xl {
+        font-size: 1.875rem;
+    }
+}
+
+/* Animación de shake para errores */
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-5px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(5px);
+    }
+}
+
+.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+/* Mejora del estado de autofocus */
+input[autofocus] {
+    animation: focusPulse 2s ease-in-out;
+}
+
+@keyframes focusPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.2);
+    }
+}
+
+/* Transición suave para todos los elementos interactivos */
+* {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Mejora de accesibilidad - focus visible */
+*:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Dark mode support (preparado para futuro) */
+@media (prefers-color-scheme: dark) {
+    /* Aquí irían los estilos para dark mode si se implementa */
+}
+
+/* Print styles */
+@media print {
+    body {
+        background: white;
+    }
+    
+    .bg-gradient-to-br {
+        background: white;
+    }
+    
+    button, a {
+        display: none;
+    }
+}

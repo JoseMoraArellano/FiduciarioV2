@@ -1,0 +1,494 @@
+/**
+ * Dashboard.css - Estilos para el dashboard principal
+ * Complementa Tailwind CSS con animaciones y efectos personalizados
+ */
+
+/* ========================================
+   Animaciones globales
+   ======================================== */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Animación de entrada del contenido */
+body {
+    animation: fadeIn 0.3s ease-out;
+}
+
+main {
+    animation: slideInRight 0.5s ease-out;
+}
+
+/* ========================================
+   Tarjetas de estadísticas
+   ======================================== */
+
+.grid > div {
+    animation: slideInUp 0.5s ease-out backwards;
+}
+
+.grid > div:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.grid > div:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.grid > div:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.grid > div:nth-child(4) {
+    animation-delay: 0.4s;
+}
+
+/* Efecto hover en tarjetas */
+.bg-white {
+    transition: all 0.3s ease;
+}
+
+.bg-white:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+                0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Animación de los números en las tarjetas */
+.text-3xl {
+    transition: transform 0.3s ease;
+}
+
+.bg-white:hover .text-3xl {
+    transform: scale(1.1);
+}
+
+/* ========================================
+   Sidebar
+   ======================================== */
+
+/* Transición suave del sidebar */
+aside {
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Efecto hover en items del menú */
+aside nav a,
+aside nav button {
+    position: relative;
+    overflow: hidden;
+}
+
+aside nav a::before,
+aside nav button::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 3px;
+    background: #3b82f6;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+aside nav a:hover::before,
+aside nav button:hover::before {
+    transform: translateX(0);
+}
+
+/* Item activo del menú */
+aside nav a.bg-gray-800 {
+    position: relative;
+}
+
+aside nav a.bg-gray-800::before {
+    transform: translateX(0);
+}
+
+/* Animación de colapso del sidebar */
+aside * {
+    transition: opacity 0.3s ease;
+}
+
+/* ========================================
+   Header superior
+   ======================================== */
+
+header {
+    backdrop-filter: blur(10px);
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+/* Animación del reloj */
+#currentTime {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.05em;
+}
+
+/* ========================================
+   Notificaciones
+   ======================================== */
+
+/* Badge de notificaciones */
+.fa-bell + span {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+}
+
+/* Dropdown de notificaciones */
+[x-show] {
+    transition: all 0.3s ease;
+}
+
+/* ========================================
+   Menú de usuario
+   ======================================== */
+
+/* Efecto hover en opciones del menú */
+.absolute a {
+    transition: all 0.2s ease;
+}
+
+.absolute a:hover {
+    padding-left: 1.25rem;
+}
+
+/* ========================================
+   Gráficos y visualizaciones
+   ======================================== */
+
+/* Contenedor de gráficos */
+.chart-container {
+    position: relative;
+    height: 300px;
+}
+
+/* ========================================
+   Actividad reciente
+   ======================================== */
+
+/* Timeline effect */
+.space-y-4 > div {
+    position: relative;
+    padding-left: 3rem;
+}
+
+.space-y-4 > div::before {
+    content: '';
+    position: absolute;
+    left: 1.25rem;
+    top: 2.5rem;
+    bottom: -1rem;
+    width: 2px;
+    background: #e5e7eb;
+}
+
+.space-y-4 > div:last-child::before {
+    display: none;
+}
+
+/* Animación de los items de actividad */
+.space-y-4 > div {
+    animation: slideInRight 0.5s ease-out backwards;
+}
+
+.space-y-4 > div:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.space-y-4 > div:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.space-y-4 > div:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+/* ========================================
+   Badges y etiquetas
+   ======================================== */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.badge-success {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.badge-warning {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.badge-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-info {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.badge:hover {
+    transform: scale(1.05);
+}
+
+/* ========================================
+   Scrollbar personalizado
+   ======================================== */
+
+/* Para navegadores webkit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Para Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f1f1;
+}
+
+/* ========================================
+   Loading states
+   ======================================== */
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        #f0f0f0 25%,
+        #e0e0e0 50%,
+        #f0f0f0 75%
+    );
+    background-size: 200% 100%;
+    animation: loading 1.5s ease-in-out infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* ========================================
+   Tooltips
+   ======================================== */
+
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    padding: 0.5rem 0.75rem;
+    background: #1f2937;
+    color: white;
+    font-size: 0.75rem;
+    border-radius: 0.375rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 1000;
+}
+
+[data-tooltip]:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px);
+}
+
+/* ========================================
+   Responsive
+   ======================================== */
+
+@media (max-width: 768px) {
+    /* Ajustes para móvil */
+    .grid {
+        grid-template-columns: 1fr;
+    }
+    
+    aside {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 1000;
+    }
+    
+    /* Overlay cuando el sidebar está abierto */
+    aside[class*="w-64"] + main::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+    }
+}
+
+/* ========================================
+   Utilidades
+   ======================================== */
+
+/* Ocultar scrollbar pero mantener funcionalidad */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Texto truncado con tooltip */
+.truncate-tooltip {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Efecto glass morphism */
+.glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ========================================
+   Animaciones de carga
+   ======================================== */
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f4f6;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ========================================
+   Print styles
+   ======================================== */
+
+@media print {
+    aside,
+    header button,
+    .no-print {
+        display: none !important;
+    }
+    
+    main {
+        margin: 0;
+        width: 100%;
+    }
+    
+    .bg-white {
+        box-shadow: none;
+        border: 1px solid #e5e7eb;
+    }
+}
+
+/* ========================================
+   Dark mode support (preparado)
+   ======================================== */
+
+@media (prefers-color-scheme: dark) {
+    /* Aquí irían estilos para modo oscuro si se implementa */
+}
+
+/* ========================================
+   Accesibilidad
+   ======================================== */
+
+/* Focus visible mejorado */
+*:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+    border-radius: 0.25rem;
+}
+
+/* Reducir movimiento para usuarios que lo prefieren */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
