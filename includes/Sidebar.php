@@ -10,21 +10,24 @@ class Sidebar {
     private $userId;
     private $currentPage;
     private $menuItems = [];
+    private $isUserAdmin = false;
     
     /**
      * Constructor
      * @param array $userPermissions - Array de permisos del usuario desde Session
      * @param int $userId - ID del usuario actual
      * @param string $currentPage - Página actual para resaltar en el menú
+     * @param bool $isAdmin - Si el usuario es administrador
      */
-    public function __construct($userPermissions, $userId, $currentPage = '') {
-        $this->db = Database::getInstance()->getConnection();
-        $this->userPermissions = $userPermissions;
-        $this->userId = $userId;
-        $this->currentPage = $currentPage;
-        
-        $this->loadMenuFromDatabase();
-    }
+public function __construct($userPermissions, $userId, $currentPage = '', $isAdmin = false) {
+    $this->db = Database::getInstance()->getConnection();
+    $this->userPermissions = $userPermissions;
+    $this->userId = $userId;
+    $this->currentPage = $currentPage;
+    $this->isUserAdmin = $isAdmin;
+    
+    $this->loadMenuFromDatabase();
+}
     
     /**
      * Carga la estructura del menú desde la base de datos
@@ -89,17 +92,29 @@ class Sidebar {
     }
     
     /**
+     * Verifica si el usuario es administrador
+     */
+    
+    private function isAdmin() { 
+        return $this->isUserAdmin;
+    }
+
+    /**
      * Verifica si el usuario tiene un permiso específico
      */
     private function hasPermission($modulo, $permiso, $subpermiso = null) {
+        // Si es administrador, tiene todos los permisos
+        if ($this->isAdmin()) {
+            return true;
+        }
+                
+        // Para usuarios normales, verificar permisos
         foreach ($this->userPermissions as $perm) {
             if ($perm['modulo'] === $modulo && $perm['permiso'] === $permiso) {
-                // Si no se requiere subpermiso específico, con el permiso general basta
                 if ($subpermiso === null) {
                     return true;
                 }
                 
-                // Si se requiere subpermiso específico, verificar coincidencia exacta
                 if ($perm['subpermiso'] === $subpermiso) {
                     return true;
                 }
@@ -352,8 +367,11 @@ class Sidebar {
             <!-- Header -->
             <div class="p-4 border-b border-gray-700 flex items-center justify-between">
                 <div x-show="sidebarOpen" class="flex items-center gap-3">
-                    <div class="bg-blue-600 p-2 rounded-lg">
-                        <i class="fas fa-briefcase text-xl"></i>
+                    <a href="dashboard.php" class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                       <!-- <i class="fas fa-briefcase text-xl"></i>-->
+                        <img href="dashboard.php" src="img/Fiduciapalomas.jpg"  alt="Logo" class="w-12 h-12">
+                        </a>
                     </div>
                     <div>
                         <h1 class="font-bold text-sm whitespace-nowrap">Business Manager</h1>
@@ -393,7 +411,7 @@ class Sidebar {
                         src="<?php echo htmlspecialchars($userAvatar); ?>" 
                         alt="<?php echo htmlspecialchars($fullName); ?>" 
                         class="w-10 h-10 rounded-full"
-                    >
+                   >
                     <div x-show="sidebarOpen" class="flex-1 overflow-hidden">
                         <p class="text-sm font-medium truncate"><?php echo htmlspecialchars($fullName); ?></p>
                         <?php if ($userEmail): ?>

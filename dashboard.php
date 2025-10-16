@@ -1,16 +1,16 @@
 <?php
 /**
  * Dashboard.php - Página principal del sistema
- * Requiere autenticación y muestra el sidebar dinámico
+ * Actualizado para usar Sidebar dinámico desde base de datos
  */
 
 // Cargar configuración y clases
 require_once 'config.php';
-
 require_once 'includes/Database.php';
 require_once 'includes/Session.php';
 require_once 'includes/Permissions.php';
 require_once 'includes/Auth.php';
+require_once 'includes/Sidebar.php'; // ← NUEVA CLASE
 
 // Iniciar sesión
 $session = new Session();
@@ -37,11 +37,10 @@ if (!empty($perfil['firstname']) || !empty($perfil['lastname'])) {
     $fullName = $userName;
 }
 
-// Ejemplo: Verificar permiso específico
-$canViewClients = $session->hasPermission('clients', 'lire');
-$canCreateClients = $session->hasPermission('clients', 'creer');
+// Obtener permisos del usuario (ya cargados en sesión)
+$userPermissions = $userData['permissions'] ?? [];
 
-// Estadísticas de ejemplo (aquí conectarías con tu base de datos real)
+// Estadísticas de ejemplo
 $stats = [
     'total_users' => 0,
     'active_sessions' => 0,
@@ -59,7 +58,7 @@ if ($isAdmin) {
         $result = $stmt->fetch();
         $stats['total_users'] = $result['total'];
         
-        // Contar sesiones activas (tokens de remember me válidos)
+        // Contar sesiones activas
         $stmt = $db->query("SELECT COUNT(DISTINCT fk_user) as total FROM t_remember_tokens WHERE expires_at > NOW()");
         $result = $stmt->fetch();
         $stats['active_sessions'] = $result['total'];
@@ -69,173 +68,42 @@ if ($isAdmin) {
     }
 }
 
-// Obtener permisos del usuario para el menú
-$permissions = new Permissions();
-$userPermissionsList = $permissions->getUserPermissions($userId);
+// Crear instancia del Sidebar
+// $sidebar = new Sidebar($userPermissions, $userId, 'dashboard.php');
+// Crear instancia del Sidebar (PASAR PARÁMETRO $isAdmin)
+$sidebar = new Sidebar($userPermissions, $userId, 'dashboard.php', $isAdmin);
+
+// Obtener estadísticas del menú (opcional, para mostrar info)
+$menuStats = $sidebar->getMenuStats();
 ?>
-
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Fiduciario</title>
+    <title>Dashboard - Business Manager</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS personalizados -->
     <link rel="stylesheet" href="./public/css/dashboard.css">
+    <link rel="stylesheet" href="./public/css/sidebar.css">
 </head>
 <body class="bg-gray-100">
     
-    <div x-data="{ sidebarOpen: true }" class="flex h-screen overflow-hidden">
+    <div class="flex h-screen overflow-hidden">
         
         <!-- ============================================ -->
-        <!-- SIDEBAR (Placeholder - Lo crearemos después) -->
+        <!-- SIDEBAR DINÁMICO DESDE BD -->
         <!-- ============================================ -->
-        <aside 
-            :class="sidebarOpen ? 'w-64' : 'w-20'" 
-            class="bg-gray-900 text-white transition-all duration-300 flex flex-col overflow-hidden"
-        >
-            <!-- Header del Sidebar -->
-            <div class="p-4 border-b border-gray-700 flex items-center justify-between">
-                <div x-show="sidebarOpen" class="flex items-center gap-3">
-                    <div class="p-2 rounded-lg">
-                        <!-- <i class="fas fa-briefcase text-xl"></i>-->
-                         <img src="img/Fiduciapalomas.jpg" alt="Briefcase" class="w-6 h-6">
-                    </div>
-                    <div>
-                        <h1 class="font-bold text-sm whitespace-nowrap">Afianzadora Fiducia</h1>
-                        <p class="text-xs text-gray-400">Sistema Fiduciario</p>
-                    </div>
-                </div>
-                
-                <button 
-                    @click="sidebarOpen = !sidebarOpen"
-                    class="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-                >
-                    <i class="fas fa-bars text-lg"></i>
-                </button>
-            </div>
-
-            <!-- Menú de navegación (Ejemplo básico) -->
-            <nav class="flex-1 overflow-y-auto py-4">
-                <ul class="space-y-1 px-2">
-                    
-                    <!-- Dashboard -->
-                    <li>
-                        <a href="dashboard.php" 
-                           class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-800 text-white transition-colors group"
-                        >
-                            <i class="fas fa-th-large text-lg w-5"></i>
-                            <span x-show="sidebarOpen" class="whitespace-nowrap">Dashboard</span>
-                        </a>
-                    </li>
-
-                    <?php if ($canViewClients): ?>
-                    <!-- Clientes (ejemplo con permiso) -->
-                    <li x-data="{ open: false }">
-                        <button 
-                            @click="open = !open"
-                            class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-800 transition-colors group"
-                        >
-                            <div class="flex items-center gap-3">
-                                <i class="fas fa-users text-lg w-5"></i>
-                                <span x-show="sidebarOpen" class="whitespace-nowrap">Clientes</span>
-                            </div>
-                            <i 
-                                x-show="sidebarOpen"
-                                :class="open ? 'fa-chevron-down' : 'fa-chevron-right'" 
-                                class="fas text-xs transition-transform"
-                            ></i>
-                        </button>
-                        
-                        <!-- Submenu -->
-                        <ul 
-                            x-show="open && sidebarOpen" 
-                            x-collapse
-                            class="mt-1 ml-8 space-y-1"
-                        >
-                            <li>
-                                <a href="clients/index.php" 
-                                   class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors text-sm text-gray-300 hover:text-white"
-                                >
-                                    <i class="fas fa-list w-4"></i>
-                                    <span>Ver Todos</span>
-                                </a>
-                            </li>
-                            
-                            <?php if ($canCreateClients): ?>
-                            <li>
-                                <a href="clients/create.php" 
-                                   class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors text-sm text-gray-300 hover:text-white"
-                                >
-                                    <i class="fas fa-plus w-4"></i>
-                                    <span>Crear Nuevo</span>
-                                </a>
-                            </li>
-                            <?php endif; ?>
-                        </ul>
-                    </li>
-                    <?php endif; ?>
-
-                    <!-- Más opciones de menú aquí -->
-                    
-                </ul>
-            </nav>
-
-            <!-- Footer del Sidebar - Perfil de usuario -->
-            <div class="p-4 border-t border-gray-700">
-                <div class="flex items-center gap-3">
-                    <?php
-                    $avatarUrl = !empty($perfil['avatar']) 
-                        ? $perfil['avatar'] 
-                        : "https://ui-avatars.com/api/?name=" . urlencode($fullName) . "&background=3b82f6&color=fff";
-                    ?>
-                    <img 
-                        src="<?php echo htmlspecialchars($avatarUrl); ?>" 
-                        alt="<?php echo htmlspecialchars($fullName); ?>" 
-                        class="w-10 h-10 rounded-full"
-                    >
-                    <div x-show="sidebarOpen" class="flex-1 overflow-hidden">
-                        <p class="text-sm font-medium truncate"><?php echo htmlspecialchars($fullName); ?></p>
-                        <p class="text-xs text-gray-400 truncate"><?php echo htmlspecialchars($userEmail); ?></p>
-                    </div>
-                    
-                    <!-- Menú desplegable del usuario -->
-                    <div x-data="{ userMenuOpen: false }" class="relative" x-show="sidebarOpen">
-                        <button 
-                            @click="userMenuOpen = !userMenuOpen"
-                            class="p-1 hover:bg-gray-800 rounded transition-colors"
-                        >
-                            <i class="fas fa-ellipsis-v text-gray-400"></i>
-                        </button>
-                        
-                        <!-- Dropdown -->
-                        <div 
-                            x-show="userMenuOpen"
-                            @click.away="userMenuOpen = false"
-                            x-transition
-                            class="absolute bottom-full right-0 mb-2 w-48 bg-gray-800 rounded-lg shadow-lg py-2 z-50"
-                        >
-                            <a href="profile.php" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-700 transition-colors">
-                                <i class="fas fa-user w-4"></i>
-                                <span>Mi Perfil</span>
-                            </a>
-                            <a href="settings.php" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-700 transition-colors">
-                                <i class="fas fa-cog w-4"></i>
-                                <span>Configuración</span>
-                            </a>
-                            <hr class="my-2 border-gray-700">
-                            <a href="logout.php" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-700 transition-colors text-red-400">
-                                <i class="fas fa-sign-out-alt w-4"></i>
-                                <span>Cerrar Sesión</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </aside>
+        <?php echo $sidebar->render($userData); ?>
 
         <!-- ============================================ -->
         <!-- CONTENIDO PRINCIPAL -->
@@ -243,7 +111,7 @@ $userPermissionsList = $permissions->getUserPermissions($userId);
         <main class="flex-1 overflow-y-auto">
             
             <!-- Header superior -->
-            <header class="bg-white shadow-sm">
+            <header class="bg-white shadow-sm sticky top-0 z-30">
                 <div class="px-8 py-4 flex items-center justify-between">
                     <div>
                         <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
@@ -256,6 +124,7 @@ $userPermissionsList = $permissions->getUserPermissions($userId);
                             <button 
                                 @click="notifOpen = !notifOpen"
                                 class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                title="Notificaciones"
                             >
                                 <i class="fas fa-bell text-xl"></i>
                                 <?php if ($stats['system_alerts'] > 0): ?>
@@ -283,7 +152,7 @@ $userPermissionsList = $permissions->getUserPermissions($userId);
                         </div>
                         
                         <!-- Hora actual -->
-                        <div class="text-sm text-gray-600">
+                        <div class="text-sm text-gray-600 hidden md:flex items-center">
                             <i class="fas fa-clock mr-2"></i>
                             <span id="currentTime"></span>
                         </div>
@@ -294,54 +163,74 @@ $userPermissionsList = $permissions->getUserPermissions($userId);
             <!-- Contenido del Dashboard -->
             <div class="p-8">
                 
+                <!-- Alert informativo (mostrar solo primera vez) -->
+                <div class="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+                    <div class="flex items-start">
+                        <i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
+                        <div class="flex-1">
+                         <!--   <h3 class="text-sm font-semibold text-blue-800 mb-1">Sistema de Menú Dinámico Activado</h3> -->
+                            <p class="text-sm text-blue-700">
+                                Tienes acceso a <strong><?php echo $menuStats['main_items']; ?> módulos principales</strong> 
+                                y <strong><?php echo $menuStats['sub_items']; ?> submenús</strong>.
+                            </p>
+                        </div>
+                        <button 
+                            onclick="this.parentElement.parentElement.remove()" 
+                            class="text-blue-500 hover:text-blue-700 transition"
+                        >
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                
                 <!-- Tarjetas de estadísticas -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     
                     <!-- Card 1 -->
-                    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+                    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500 hover:shadow-lg transition-shadow">
                         <div class="flex items-center justify-between mb-4">
                             <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                                 <i class="fas fa-users text-2xl text-blue-600"></i>
                             </div>
                             <span class="text-xs font-semibold text-gray-500 uppercase">Usuarios</span>
                         </div>
-                        <div class="text-3xl font-bold text-gray-800 mb-1"><?php echo $stats['total_users']; ?></div>
+                        <div class="text-3xl font-bold text-gray-800 mb-1" data-stat="total_users"><?php echo $stats['total_users']; ?></div>
                         <p class="text-sm text-gray-600">Usuarios activos</p>
                     </div>
                     
                     <!-- Card 2 -->
-                    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+                    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500 hover:shadow-lg transition-shadow">
                         <div class="flex items-center justify-between mb-4">
                             <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                                 <i class="fas fa-user-check text-2xl text-green-600"></i>
                             </div>
                             <span class="text-xs font-semibold text-gray-500 uppercase">Sesiones</span>
                         </div>
-                        <div class="text-3xl font-bold text-gray-800 mb-1"><?php echo $stats['active_sessions']; ?></div>
+                        <div class="text-3xl font-bold text-gray-800 mb-1" data-stat="active_sessions"><?php echo $stats['active_sessions']; ?></div>
                         <p class="text-sm text-gray-600">Sesiones activas</p>
                     </div>
                     
                     <!-- Card 3 -->
-                    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-orange-500">
+                    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-orange-500 hover:shadow-lg transition-shadow">
                         <div class="flex items-center justify-between mb-4">
                             <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-tasks text-2xl text-orange-600"></i>
+                                <i class="fas fa-list-check text-2xl text-orange-600"></i>
                             </div>
-                            <span class="text-xs font-semibold text-gray-500 uppercase">Tareas</span>
+                            <span class="text-xs font-semibold text-gray-500 uppercase">Módulos</span>
                         </div>
-                        <div class="text-3xl font-bold text-gray-800 mb-1"><?php echo $stats['pending_tasks']; ?></div>
-                        <p class="text-sm text-gray-600">Tareas pendientes</p>
+                        <div class="text-3xl font-bold text-gray-800 mb-1"><?php echo $menuStats['main_items']; ?></div>
+                        <p class="text-sm text-gray-600">Módulos disponibles</p>
                     </div>
                     
                     <!-- Card 4 -->
-                    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
+                    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500 hover:shadow-lg transition-shadow">
                         <div class="flex items-center justify-between mb-4">
                             <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
                                 <i class="fas fa-exclamation-triangle text-2xl text-red-600"></i>
                             </div>
                             <span class="text-xs font-semibold text-gray-500 uppercase">Alertas</span>
                         </div>
-                        <div class="text-3xl font-bold text-gray-800 mb-1"><?php echo $stats['system_alerts']; ?></div>
+                        <div class="text-3xl font-bold text-gray-800 mb-1" data-stat="system_alerts"><?php echo $stats['system_alerts']; ?></div>
                         <p class="text-sm text-gray-600">Alertas del sistema</p>
                     </div>
                     
@@ -352,7 +241,7 @@ $userPermissionsList = $permissions->getUserPermissions($userId);
                     
                     <!-- Información de sesión -->
                     <div class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                             <i class="fas fa-info-circle mr-2 text-blue-500"></i>
                             Información de Sesión
                         </h3>
@@ -363,7 +252,7 @@ $userPermissionsList = $permissions->getUserPermissions($userId);
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Email:</span>
-                                <span class="font-medium text-gray-800"><?php echo htmlspecialchars($userEmail); ?></span>
+                                <span class="font-medium text-gray-800 truncate ml-2"><?php echo htmlspecialchars($userEmail); ?></span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Rol:</span>
@@ -383,54 +272,75 @@ $userPermissionsList = $permissions->getUserPermissions($userId);
                                     ?>
                                 </span>
                             </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">ID Usuario:</span>
+                                <span class="font-medium text-gray-800">#<?php echo $userId; ?></span>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Permisos del usuario -->
                     <div class="bg-white rounded-lg shadow p-6 lg:col-span-2">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                             <i class="fas fa-shield-alt mr-2 text-green-500"></i>
-                            Tus Permisos
+                            Tus Permisos Activos
                         </h3>
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                            <?php if (!empty($userPermissionsList)): ?>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
+                            <?php if (!empty($userPermissions)): ?>
                                 <?php 
+                                // Agrupar permisos por módulo
                                 $permisosPorModulo = [];
-                                foreach ($userPermissionsList as $perm) {
+                                foreach ($userPermissions as $perm) {
                                     $permisosPorModulo[$perm['modulo']][] = $perm;
                                 }
                                 
                                 foreach ($permisosPorModulo as $modulo => $permisos):
                                 ?>
-                                <div class="bg-gray-50 rounded-lg p-3">
-                                    <div class="font-semibold text-sm text-gray-800 mb-2 capitalize">
+                                <div class="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors">
+                                    <div class="font-semibold text-sm text-gray-800 mb-2 capitalize flex items-center">
+                                        <i class="fas fa-folder text-blue-500 mr-2 text-xs"></i>
                                         <?php echo htmlspecialchars($modulo); ?>
                                     </div>
                                     <div class="space-y-1">
-                                        <?php foreach ($permisos as $perm): ?>
+                                        <?php 
+                                        // Mostrar solo primeros 3 permisos
+                                        $permisosLimitados = array_slice($permisos, 0, 3);
+                                        foreach ($permisosLimitados as $perm): 
+                                        ?>
                                         <div class="flex items-center text-xs text-gray-600">
-                                            <i class="fas fa-check text-green-500 mr-2"></i>
-                                            <span><?php echo htmlspecialchars($perm['permiso']); ?></span>
+                                            <i class="fas fa-check text-green-500 mr-2" style="font-size: 8px;"></i>
+                                            <span class="truncate"><?php echo htmlspecialchars($perm['permiso']); ?></span>
                                         </div>
                                         <?php endforeach; ?>
+                                        <?php if (count($permisos) > 3): ?>
+                                        <div class="text-xs text-gray-500 italic">
+                                            +<?php echo count($permisos) - 3; ?> más
+                                        </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <p class="text-sm text-gray-500 col-span-full">No tienes permisos asignados</p>
+                                <p class="text-sm text-gray-500 col-span-full text-center py-4">
+                                    <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+                                    No tienes permisos asignados
+                                </p>
                             <?php endif; ?>
                         </div>
                     </div>
                     
                 </div>
 
-                <!-- Actividad reciente (ejemplo) -->
+                <!-- Actividad reciente -->
                 <div class="bg-white rounded-lg shadow">
-                    <div class="px-6 py-4 border-b">
-                        <h3 class="text-lg font-semibold text-gray-800">
+                    <div class="px-6 py-4 border-b flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-800 flex items-center">
                             <i class="fas fa-history mr-2 text-purple-500"></i>
                             Actividad Reciente
                         </h3>
+                        <button class="text-sm text-blue-600 hover:text-blue-800 font-medium transition">
+                            Ver todo
+                        </button>
                     </div>
                     <div class="p-6">
                         <div class="space-y-4">
@@ -458,6 +368,8 @@ $userPermissionsList = $permissions->getUserPermissions($userId);
         
     </div>
     
+    <!-- Scripts -->
+    <script src="./public/js/sidebar.js"></script>
     <script src="./public/js/dashboard.js"></script>
 </body>
 </html>

@@ -157,9 +157,9 @@ class Session {
     /**
      * Verifica si es administrador
      */
-    public function isAdmin() {
-        return ($_SESSION['admin'] ?? 0) == 1;
-    }
+public function isAdmin() {
+    return isset($_SESSION['admin']) && $_SESSION['admin'] == 1;
+}
     
     /**
      * Cierra la sesión del usuario
