@@ -374,8 +374,8 @@ public function __construct($userPermissions, $userId, $currentPage = '', $isAdm
                         </a>
                     </div>
                     <div>
-                        <h1 class="font-bold text-sm whitespace-nowrap">Business Manager</h1>
-                        <p class="text-xs text-gray-400">Enterprise</p>
+                        <h1 class="font-bold text-sm whitespace-nowrap">Afianzadora Fiducia</h1>
+                        <p class="text-xs text-gray-400">Fiduciario</p>
                     </div>
                 </div>
                 
@@ -413,7 +413,12 @@ public function __construct($userPermissions, $userId, $currentPage = '', $isAdm
                         class="w-10 h-10 rounded-full"
                    >
                     <div x-show="sidebarOpen" class="flex-1 overflow-hidden">
-                        <p class="text-sm font-medium truncate"><?php echo htmlspecialchars($fullName); ?></p>
+                        <p class="text-sm font-medium truncate">
+                            <?php echo htmlspecialchars($fullName); ?>
+                            <?php if ($this->isAdmin()): ?>
+                            <span class="ml-2 text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">Admin</span>
+                            <?php endif; ?>
+                        </p>
                         <?php if ($userEmail): ?>
                             <p class="text-xs text-gray-400 truncate"><?php echo htmlspecialchars($userEmail); ?></p>
                         <?php endif; ?>
