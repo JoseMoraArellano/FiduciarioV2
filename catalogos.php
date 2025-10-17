@@ -43,6 +43,7 @@ $allowedModules = [
     'cpp',
     'servicios',
     'usuarios',
+    'grupos',
     'clientes'
 ];
 
