@@ -152,6 +152,7 @@ $sidebar = new Sidebar($userPermissions, $userId, 'catalogos.php', $isAdmin);
     <link rel="stylesheet" href="./public/css/dashboard.css">
     <link rel="stylesheet" href="./public/css/sidebar.css">
     <link rel="stylesheet" href="./public/css/usuarios.css">
+    <link rel="icon" type="image/x-icon" href="./img/afiducialogo.png">
 </head>
 <body class="bg-gray-100">
     

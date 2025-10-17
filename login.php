@@ -56,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./public/css/login.css">
+    <link rel="icon" type="image/x-icon" href="./img/afiducialogo.png">
 </head>
 <body class="bg-gradient-to-br from-blue-500 min-h-screen flex items-center justify-center p-4">
     
@@ -180,10 +181,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>                
             </div>
         </div>
-        
+        <br>
+        <br>
         <!-- Footer -->
-        <div class="mt-8 text-center text-white text-sm">
-            <p>&copy; <?php echo date('Y'); ?> Afianzadora fiducia. Todos los derechos reservados. V. 1.1.0</p>
+        <div class="mt-8 text-center text-gray-500 text-sm">
+            <p>&copy; <?php echo date('Y'); ?> Afianzadora fiducia. Todos los derechos reservados. V. 1.0.0</p>
         </div>
         
     </div>
