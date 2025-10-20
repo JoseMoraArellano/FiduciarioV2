@@ -38,8 +38,8 @@ if (!empty($perfil['firstname']) || !empty($perfil['lastname'])) {
 }
 
 // Obtener permisos del usuario (ya cargados en sesión)
-$userPermissions = $userData['permissions'] ?? [];
-
+// $userPermissions = $userData['permissions'] ?? [];
+$userPermissions = $_SESSION['permissions'] ?? [];
 // Estadísticas de ejemplo
 $stats = [
     'total_users' => 0,
@@ -72,6 +72,8 @@ if ($isAdmin) {
 // $sidebar = new Sidebar($userPermissions, $userId, 'dashboard.php');
 // Crear instancia del Sidebar (PASAR PARÁMETRO $isAdmin)
 $sidebar = new Sidebar($userPermissions, $userId, 'dashboard.php', $isAdmin);
+// echo '<pre>DEBUG - Permisos desde SESSION: '; print_r($_SESSION['permissions']); echo '</pre>';
+// echo '<pre>DEBUG - Variable userPermissions: '; print_r($userPermissions); echo '</pre>';
 
 // Obtener estadísticas del menú (opcional, para mostrar info)
 $menuStats = $sidebar->getMenuStats();

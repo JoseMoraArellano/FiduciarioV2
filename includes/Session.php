@@ -128,7 +128,8 @@ class Session {
                 'name' => $_SESSION['name'] ?? null,
                 'admin' => $_SESSION['admin'] ?? 0,
                 'empleado' => $_SESSION['empleado'] ?? 0,
-                'perfil' => $_SESSION['perfil'] ?? []
+                'perfil' => $_SESSION['perfil'] ?? [],
+                'permissions' => $_SESSION['permissions'] ?? []
             ];
         }
         
