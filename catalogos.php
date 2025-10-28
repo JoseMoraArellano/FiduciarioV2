@@ -86,6 +86,13 @@ $modulesMetadata = [
         'description' => 'Catálogo de honorarios',
         'path' => 'modules/honorarios/'
     ],
+    'clientes' => [
+        'title' => 'Clientes',
+        'icon' => 'fa-users',
+        'description' => 'Administra clientes y sus datos',
+        'path' => 'modules/clientes/'
+    ],
+
     // ... otros módulos (agregar según necesites)
 ];
 
