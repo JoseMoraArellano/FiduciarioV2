@@ -29,7 +29,7 @@ function sidebar(initialState = true, userId = null) {
             if (this.isMobile && this.sidebarOpen) {
                 this.sidebarOpen = false;
             }
-            
+/*            
             // Log para debug
             if (this.isDevelopment()) {
                 console.log('🎨 Sidebar initialized', {
@@ -38,6 +38,7 @@ function sidebar(initialState = true, userId = null) {
                     isMobile: this.isMobile
                 });
             }
+*/                
         },
         
         /**

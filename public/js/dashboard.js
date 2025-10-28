@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function checkNotifications() {
         // Aquí harías una llamada AJAX para verificar nuevas notificaciones
-        console.log('🔔 Checking for notifications...');
+//        console.log('🔔 Checking for notifications...');
         
         // Ejemplo:
         /*
@@ -368,7 +368,7 @@ document.addEventListener('DOMContentLoaded', function() {
             resetSession: resetSessionTimer
         };
         
-        console.log('💡 Debug helpers available:', Object.keys(window.dashboardDebug));
+//        console.log('💡 Debug helpers available:', Object.keys(window.dashboardDebug));
     }
     
     // ========================================
@@ -384,7 +384,7 @@ document.addEventListener('DOMContentLoaded', function() {
         */
     }
     
-    console.log('✅ Dashboard fully loaded');
+//    console.log('✅ Dashboard fully loaded');
     
 });
 

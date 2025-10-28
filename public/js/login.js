@@ -3,8 +3,7 @@
  * Incluye: validación, mostrar/ocultar contraseña, efectos visuales
  */
 
-document.addEventListener('DOMContentLoaded', function() {
-    
+document.addEventListener('DOMContentLoaded', function() {    
     // Elementos del DOM
     const loginForm = document.getElementById('loginForm');
     const identifierInput = document.getElementById('identifier');

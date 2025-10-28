@@ -10,7 +10,7 @@ require_once 'includes/Database.php';
 require_once 'includes/Session.php';
 require_once 'includes/Permissions.php';
 require_once 'includes/Auth.php';
-require_once 'includes/Sidebar.php'; // ← NUEVA CLASE
+require_once 'includes/Sidebar.php';
 
 // Iniciar sesión
 $session = new Session();

@@ -68,15 +68,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <!-- Header -->
             <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-center">
                 <div class="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center">
-<!--                    <i class="fas fa-briefcase text-4xl text-blue-600"></i>-->
                     <img src="img/Fiduciapalomas.jpg" alt="Logo" class="w-12 h-12">
                 </div>
                 <h1 class="text-3xl font-bold text-white mb-2">Sistema Fiduciario</h1>                
             </div>
             
             <!-- Formulario -->
-            <div class="p-8">
-                
+            <div class="p-8">                
                 <?php if ($error): ?>
                     <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded">
                         <div class="flex items-center">
@@ -164,20 +162,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     >
                         <i class="fas fa-sign-in-alt mr-2"></i>
                         Iniciar Sesión
-                    </button>
-                    
+                    </button>                    
                 </form>
                 
                 <!-- Divider -->
                 <div class="relative my-8">
                     <div class="absolute inset-0 flex items-center">
                         <div class="w-full border-t border-gray-300"></div>
-                    </div>
-
-<!--                    <div class="relative flex justify-center text-sm">
-                        <span class="px-4 bg-white text-gray-500">O continúa con</span>
-                    </div>
-                -->                    
+                    </div>                  
                 </div>                
             </div>
         </div>
@@ -187,9 +179,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="mt-8 text-center text-gray-500 text-sm">
             <p>&copy; <?php echo date('Y'); ?> Afianzadora fiducia. Todos los derechos reservados. V. 1.0.0</p>
         </div>
-        
-    </div>
-    
+
+    </div>    
     <script src="./public/js/login.js"></script>
-</body>
+ </body>
 </html>
