@@ -3,7 +3,7 @@
  * Clase ClientesManager - Gestión completa de clientes
  * Maneja: CRUD, validaciones, exportación, histórico, documentos
  */
-class ClientesManager {
+class ClienteManager {
     
     private $db;
 
@@ -25,7 +25,7 @@ class ClientesManager {
             $where = ['1=1'];
             $params = [];
             
-            // Búsqueda general
+             // Filtro de búsqueda
             if (!empty($filters['search'])) {
                 $where[] = "(
                     c.nombres ILIKE :search OR 
@@ -319,12 +319,12 @@ private function arrayToCsv($array) {
             }
             
             // Verificar CURP único
-            if (!empty($data['curp']) && $this->curpExists($data['curp'])) {
-                return [
-                    'success' => false,
-                    'message' => 'El CURP ya está registrado'
-                ];
-            }
+//            if (!empty($data['curp']) && $this->curpExists($data['curp'])) {
+//                return [
+//                    'success' => false,
+//                    'message' => 'El CURP ya está registrado'
+//                ];
+//            }
             
             $sql = "
                 INSERT INTO t_cliente (
@@ -523,15 +523,14 @@ private function arrayToCsv($array) {
     public function deleteCliente($id) {
         try {
             // Verificar si el cliente puede ser eliminado
-            $canDelete = $this->canDeleteCliente($id);
-            if (!$canDelete['success']) {
-                return $canDelete;
-            }
+//            $canDelete = $this->canDeleteCliente($id);
+//            if (!$canDelete['success']) {
+//                return $canDelete;
+//            }
             
             $sql = "UPDATE t_cliente SET activo = false, fechaedit = NOW(), useredit = :useredit WHERE id = :id";
             $stmt = $this->db->prepare($sql);
-            $stmt->execute([
-                'id' => $id,
+            $stmt->execute(['id' => $id,
                 'useredit' => $_SESSION['user_id'] ?? 1
             ]);
             
@@ -551,7 +550,7 @@ private function arrayToCsv($array) {
             ];
         }
     }
-    
+
     /**
      * Cambiar estado activo/inactivo
      */
@@ -559,7 +558,7 @@ private function arrayToCsv($array) {
         try {
             $sql = "
                 UPDATE t_cliente 
-                SET activo = NOT activo,
+                SET activo = CASE WHEN activo = true THEN FALSE ELSE TRUE END,
                     fechaedit = NOW(),
                     useredit = :useredit
                 WHERE id = :id
@@ -567,8 +566,7 @@ private function arrayToCsv($array) {
             ";
             
             $stmt = $this->db->prepare($sql);
-            $stmt->execute([
-                'id' => $id,
+            $stmt->execute(['id' => $id,
                 'useredit' => $_SESSION['user_id'] ?? 1
             ]);
             
@@ -697,33 +695,58 @@ private function arrayToCsv($array) {
         $stmt->execute($params);
         return $stmt->fetch() !== false;
     }
+
+    public function canEdit($editorUserId, $targetUserId, $isEditorAdmin = false) {
+    // Permitir si el editor es admin
+        // Admin puede editar a todos excepto a sí mismo en ciertos casos
+        if ($isEditorAdmin) {
+            return true;
+        }
+        
+        // No admin solo puede editarse a sí mismo
+        return $editorUserId == $targetUserId;
+    }
     
     /**
      * Verificar si cliente puede ser eliminado
      */
-    private function canDeleteCliente($id) {
-        // Aquí verificar relaciones con otras tablas
-        // Por ejemplo: facturas, contratos, etc.
-        
-        // Por ahora solo verificamos que exista
-        $sql = "SELECT id FROM t_cliente WHERE id = :id";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(['id' => $id]);
-        
-        if (!$stmt->fetch()) {
-            return [
-                'success' => false,
-                'message' => 'Cliente no encontrado'
-            ];
-        }
-        
-        // TODO: Agregar verificaciones de relaciones
-        // Ejemplo:
-        // $sql = "SELECT COUNT(*) as total FROM t_facturas WHERE fk_cliente = :id";
-        // ...
-        
-        return ['success' => true];
+private function canDeleteCliente($id) {
+    // Verificar que el cliente exista
+    $sql = "SELECT COUNT(*) FROM t_cliente WHERE id = :id";
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute(['id' => $id]);
+    if ($stmt->fetchColumn() == 0) {
+        return [
+            'success' => false,
+            'message' => 'Cliente no encontrado'
+        ];
     }
+
+    // Verificar si está como fideicomisario
+    $sql = "SELECT COUNT(id_clit) FROM t_fideicomisarios WHERE id_clit = :id";
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute(['id' => $id]);
+    if ($stmt->fetchColumn() > 0) {
+        return [
+            'success' => false,
+            'message' => 'Cliente no puede ser eliminado, está asignado como fideicomisario'
+        ];
+    }
+
+    // Verificar si está como fideicomitente
+    $sql = "SELECT COUNT(id_clit) FROM t_fideicomitentes WHERE id_clit = :id";
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute(['id' => $id]);
+    if ($stmt->fetchColumn() > 0) {
+        return [
+            'success' => false,
+            'message' => 'Cliente no puede ser eliminado, está asignado como fideicomitente'
+        ];
+    }
+
+    // Si pasa todas las validaciones, se puede eliminar
+    return ['success' => true];
+}
     
     // ==================== FUNCIONES ESPECIALES ====================
     

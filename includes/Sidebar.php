@@ -367,10 +367,10 @@ public function __construct($userPermissions, $userId, $currentPage = '', $isAdm
             <!-- Header -->
             <div class="p-4 border-b border-gray-700 flex items-center justify-between">
                 <div x-show="sidebarOpen" class="flex items-center gap-3">
-                    <a href="dashboard.php" class="flex items-center gap-3">
+                    <a href="../../dashboard.php" class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
                        <!-- <i class="fas fa-briefcase text-xl"></i>-->
-                        <img href="dashboard.php" src="img/Fiduciapalomas.jpg"  alt="Logo" class="w-12 h-12">
+                        <img href="../../dashboard.php" src="../../img/Fiduciapalomas.jpg"  alt="Logo" class="w-12 h-12">
                         </a>
                     </div>
                     <div>

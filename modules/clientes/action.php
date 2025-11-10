@@ -1,9 +1,13 @@
 <?php
+
 // Cargar configuración
 require_once '../../config.php';
 require_once '../../includes/Database.php';
 require_once '../../includes/Session.php';
+require_once '../../includes/Permissions.php';
+require_once '../../includes/Auth.php';
 require_once '../../includes/GruposManager.php';
+require_once '../../includes/ClienteManager.php';
 
 $session = new Session();
 
@@ -20,26 +24,29 @@ if (!$session->isLoggedIn()) {
     }
     exit;
 }
-
-
-if (!$isAdmin && !$session->hasPermission('catalogos', 'lire', 'clientes')) {
-    header('HTTP/1.1 403 Forbidden');
-    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
-        header('Content-Type: application/json');
-        echo json_encode([
-            'success' => false,
-            'message' => 'No tienes permisos para realizar esta acción'
-        ]);
-    } else {
-        die('Acceso denegado');
-    }
-    exit;
-}
-
+// obtener datos del cliente
 $userId = $session->getUserId();
 $isAdmin = $session->isAdmin();
 
+if (!$isAdmin && !$session->hasPermission('catalogos', 'lire', 'clientes')) {
+    header('Content-Type: application/json');
+    header('HTTP/1.1 403 Forbidden');
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'No tienes permisos para realizar esta acción'
+        ]);    
+    exit;
+}
+// crear instancia del manager de clientes
+$clientesManager = new ClienteManager();
+
+
 $action = $_REQUEST['action'] ?? '';
+error_log("=== DEBUG ACTION.PHP ===");
+error_log("Action recibido: " . $action);
+error_log("ID recibido: " . ($_POST['id'] ?? 'no hay'));
+error_log("========================");
 
 switch ($action) {
     // ========================================
@@ -233,43 +240,40 @@ case 'verify_qsq_single':
     // ========================================
     // CAMBIAR ESTADO (ACTIVAR/DESACTIVAR)
     // ========================================
-    case 'toggle-status':
-        header('Content-Type: application/json');
-        
-        // Verificar permiso de modificar
-        if (!$isAdmin && !$session->hasPermission('catalogos', 'modifier', 'clientes')) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'No tienes permiso para cambiar el estado de clientes'
-            ]);
-            exit;
-        }
-        
-        $id = (int)($_POST['id'] ?? 0);
-        
-        if ($id <= 0) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'ID de cliente inválido'
-            ]);
-            exit;
-        }
-/*        
-        $result = $clientesManager->toggleStatus($id);
-        echo json_encode($result);
-        break;
-*/    
- // Obtener datos del cliente para el mensaje
+ case 'toggle-status':
+    header('Content-Type: application/json');
+
+    // Verificar permiso
+    if (!$isAdmin && !$session->hasPermission('catalogos', 'modifier', 'clientes')) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'No tienes permiso para cambiar el estado de clientes'
+        ]);
+        exit;
+    }
+
+    $id = (int)($_POST['id'] ?? 0);
+    if ($id <= 0) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'ID de cliente inválido'
+        ]);
+        exit;
+    }
+
+    // Obtener datos del cliente
     $clienteData = $clientesManager->getCliente($id);
-    $clienteNombre = $clienteData['success'] ? $clienteData['data']['nombre_completo'] : 'Cliente';
-    
+    $clienteNombre = $clienteData['nombre_completo'] ?? ' ';
+
+    // Cambiar estado
     $result = $clientesManager->toggleStatus($id);
-    
+
     if ($result['success']) {
         $action = $result['new_status'] ? 'activado' : 'desactivado';
         echo json_encode([
             'success' => true,
-            'message' => "Cliente '{$clienteNombre}' {$action} correctamente",
+//            'message' => "Cliente '{$clienteNombre}' {$action} correctamente",
+'message' => $result['message'],
             'new_status' => $result['new_status']
         ]);
     } else {
@@ -279,6 +283,7 @@ case 'verify_qsq_single':
         ]);
     }
     break;
+
     // ========================================
     // ELIMINAR CLIENTE
     // ========================================
@@ -303,16 +308,14 @@ case 'verify_qsq_single':
             ]);
             exit;
         }
-/*     
+    
         $result = $clientesManager->deleteCliente($id);
         echo json_encode($result);
         break;
- */
+
     // Obtener datos del cliente para el mensaje
         $clienteData = $clientesManager->getCliente($id);
         $clienteNombre = $clienteData['success'] ? $clienteData['data']['nombre_completo'] : 'Cliente';
-        
-        $result = $clientesManager->deleteCliente($id);
         
         if ($result['success']) {
             echo json_encode([
@@ -473,7 +476,7 @@ case 'view':
             }
         }
         break;
-    
+ 
     // ========================================
     // ASIGNAR PERMISOS
     // ========================================
@@ -511,7 +514,7 @@ case 'view':
         
         header('Location: ../../catalogos.php?mod=clientes&action=permissions&id=' . $targetClienteId);
         break;
-    
+   
     // ========================================
     // ASIGNAR GRUPOS
     // ========================================
@@ -549,7 +552,7 @@ case 'view':
 
         header('Location: ../../catalogos.php?mod=clientes&action=permissions&id=' . $targetClienteId . '&tab=groups');
         break;
-    
+  
     // ========================================
     // GENERAR API KEY
     // ========================================
@@ -609,7 +612,7 @@ case 'view':
         $result = $clientesManager->resetPassword($targetClienteId);
         echo json_encode($result);
         break;
-    
+   
     // ========================================
     // BÚSQUEDA RÁPIDA (AJAX)
     // ========================================

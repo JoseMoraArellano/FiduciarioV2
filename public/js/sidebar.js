@@ -28,17 +28,7 @@ function sidebar(initialState = true, userId = null) {
             // En móvil, cerrar sidebar por defecto
             if (this.isMobile && this.sidebarOpen) {
                 this.sidebarOpen = false;
-            }
-/*            
-            // Log para debug
-            if (this.isDevelopment()) {
-                console.log('🎨 Sidebar initialized', {
-                    open: this.sidebarOpen,
-                    userId: this.userId,
-                    isMobile: this.isMobile
-                });
-            }
-*/                
+            }               
         },
         
         /**
@@ -111,14 +101,12 @@ function sidebar(initialState = true, userId = null) {
                 
                 if (data.success) {
                     if (this.isDevelopment()) {
-                        console.log('✅ Sidebar state saved:', data);
                     }
                 } else {
-                    console.error('❌ Failed to save sidebar state:', data.message);
+
                 }
                 
-            } catch (error) {
-                console.error('❌ Error saving sidebar state:', error);
+            } catch (error) {                
                 
                 // Fallback: guardar en localStorage
                 this.saveSidebarStateLocal();
@@ -137,7 +125,6 @@ function sidebar(initialState = true, userId = null) {
                 localStorage.setItem('sidebar_open_timestamp', Date.now().toString());
                 
                 if (this.isDevelopment()) {
-                    console.log('💾 Sidebar state saved to localStorage (fallback)');
                 }
             } catch (e) {
                 console.error('Error saving to localStorage:', e);
@@ -286,9 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 component.closeSidebar();
             }
         }
-    });
-    
-    console.log('🎨 Sidebar scripts loaded');
+    });    
 });
 
 // ========================================
@@ -336,7 +321,5 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
             const event = new CustomEvent('close-sidebar');
             window.dispatchEvent(event);
         }
-    };
-    
-    console.log('💡 Sidebar debug tools available: window.sidebarDebug');
+    };        
 }

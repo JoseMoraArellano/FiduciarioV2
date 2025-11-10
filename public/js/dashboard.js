@@ -5,11 +5,7 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     
-    // ========================================
-    // Inicialización
-    // ========================================
-    
-    console.log('🚀 Dashboard initialized');
+
     
     // ========================================
     // Reloj en tiempo real
@@ -75,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function refreshStats() {
         // Aquí harías una llamada AJAX para obtener stats actualizadas
         // Por ahora solo mostramos un mensaje en consola
-        console.log('📊 Refreshing stats...');
+
         
         // Ejemplo de cómo sería:
         /*
@@ -264,7 +260,6 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch('api/refresh-session.php')
                 .then(() => {
                     resetSessionTimer();
-                    console.log('✅ Session refreshed');
                 })
                 .catch(error => {
                     console.error('Error refreshing session:', error);
@@ -302,16 +297,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Aquí implementarías un modal de búsqueda rápida
     }
     
-    // ========================================
-    // Gráficos y visualizaciones (preparado)
-    // ========================================
-    
-    function initCharts() {
-        // Aquí inicializarías librerías como Chart.js si las usas
-        console.log('📈 Charts ready to be initialized');
-    }
-    
-    initCharts();
     
     // ========================================
     // Export data functions

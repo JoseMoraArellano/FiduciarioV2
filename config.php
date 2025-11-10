@@ -4,7 +4,6 @@
  */
 define('APP_NAME', 'Fiduciario');
 define('ROOT_PATH', __DIR__);
-
 define('DB_HOST', 'localhost');
 define('DB_PORT', '5432');
 define('DB_NAME', 'tes_db');

@@ -438,7 +438,6 @@ $canDelete = $isAdmin || $session->hasPermission('catalogos', 'supprimer', 'clie
 function clientesListController() {
     return {
         init() {
-            console.log('Lista de clientes inicializada');
         },
         
         async confirmarEliminacion(clienteId, clienteNombre) {

@@ -30,9 +30,8 @@ class Database {
             $this->connection = new PDO($dsn, DB_USER, DB_PASS, $options);
             
         } catch (PDOException $e) {
-            error_log("Database Connection Error: " . $e->getMessage());
-            die("Error de conexión a la base de datos. Contacte al administrador.");
-        }
+    die("Error de conexión: " . $e->getMessage());
+}
     }
     
     /**

@@ -3,6 +3,11 @@
  * Definición de permisos para el módulo de Clientes
  * Este archivo define los permisos disponibles y verifica los permisos del usuario actual
  */
+require_once 'includes/ClienteManager.php';
+
+$clientManager = new ClienteManager();
+
+$clienteId=isset($_GET['id'])? (int)$_GET['id'] : 0;
 
 // Definir los permisos del módulo
 $CLIENTE_PERMISSIONS = [

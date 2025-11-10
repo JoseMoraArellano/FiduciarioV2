@@ -349,10 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const isDevelopment = window.location.hostname === 'localhost' || 
                           window.location.hostname === '127.0.0.1';
     
-    if (isDevelopment) {
-        console.log('🔐 Login form initialized');
-        console.log('📧 Remembered user:', rememberedUser || 'None');
-        
+    if (isDevelopment) {       
         // Agregar helper de desarrollo
         window.loginDebug = {
             fillTestUser: () => {
@@ -366,7 +363,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         };
         
-        console.log('💡 Debug helpers available: loginDebug.fillTestUser(), loginDebug.clearRemembered()');
     }
     
 });

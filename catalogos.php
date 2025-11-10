@@ -5,6 +5,8 @@
  * Verifica permisos antes de mostrar contenido
  */
 
+
+
 // Cargar configuración y clases
 require_once 'config.php';
 require_once 'includes/Database.php';
@@ -25,8 +27,8 @@ if (!$session->isLoggedIn()) {
 // Obtener datos del usuario
 $userData = $session->getUserData();
 $userId = $session->getUserId();
-// $isAdmin = $session->isAdmin();
-$isAdmin= true;
+ $isAdmin = $session->isAdmin();
+//$isAdmin= true;
 $userPermissions = $userData['permissions'] ?? [];
 
 // Obtener módulo solicitado
@@ -101,11 +103,11 @@ $modulesMetadata = [
         'description' => 'Ajustes y configuración del sistema',
         'path' => 'modules/configuracion/'
     ],
-    'variables' => [
-        'title' => 'Variables',
-        'icon' => 'fa-list',
-        'description' => 'Administra variables del sistema',
-        'path' => 'modules/variables/'
+    'tiie' => [
+        'title' => 'TIIE',
+        'icon' => 'fa-percentage',
+        'description' => 'Gestión de Tasas de Interés Interbancarias de Equilibrio',
+        'path' => 'modules/tiie/'
     ]
 
     // ... otros módulos (agregar según necesites)
@@ -254,6 +256,7 @@ $sidebar = new Sidebar($userPermissions, $userId, 'catalogos.php', $isAdmin);
                             <span class="text-sm text-gray-600">
                                 <i class="fas fa-user mr-1"></i>
                                 <?php echo htmlspecialchars($userData['name']); ?>
+                                <? "hola" ?>
                             </span>
                         </div>
                     </div>
@@ -315,5 +318,8 @@ $sidebar = new Sidebar($userPermissions, $userId, 'catalogos.php', $isAdmin);
             }, 5000);
         });
     </script>
+        </style> 
+        <script src="../../public/js/sidebar.js"></script>
+    <script src=".../../public/js/dashboard.js"></script>
 </body>
 </html>

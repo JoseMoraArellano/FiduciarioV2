@@ -20,7 +20,7 @@ $userData = $session->getUserData();
 $userId = $session->getUserId();
 $isAdmin = $session->isAdmin();
 $userPermissions = $userData['permissions'] ?? [];
-
+$sidebar = new Sidebar($userPermissions, $userId, 'catalogos.php', $isAdmin);
 $db = Database::getInstance()->getConnection();
 
 // Verificar permisos
@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nom = trim($_POST['nom']);
     $val = trim($_POST['val']);
     $type = trim($_POST['type']);
-    $activo = isset($_POST['activo']) && $_POST['activo'] === '1'; // Mejorado
+    $activo = isset($_POST['activo']) && $_POST['activo'] === '1';
     $nota = trim($_POST['nota'] ?? '');
     
     $sql = "UPDATE t_const SET 
@@ -165,20 +165,61 @@ $pageTitle = 'Gestión de Variables del Sistema';
     deleteId: null,
     deleteName: ''
 }">
-    <div class="container mx-auto px-4 py-8">        
-        <div class="mb-6 flex justify-between items-center">
+    <div class="flex min-h-screen">
+
+        <!-- Sidebar (menú lateral) -->
+        <?php echo $sidebar->render(); ?>
+
+
+        <!-- Contenedor principal (Navbar + contenido) -->
+        <div class="flex-1 flex flex-col lg:ml-64">
+
+            <!-- NAVBAR SUPERIOR -->
+            <header class="bg-white shadow sticky top-0 z-30">
+                <div class="flex items-center justify-between px-6 py-3">
+                    <!-- Botón para abrir/cerrar sidebar en pantallas pequeñas -->
+                    <button 
+                        class="lg:hidden text-gray-700 focus:outline-none"
+                        @click="sidebarOpen = !sidebarOpen"
+                    >
+                        <i class="fas fa-bars fa-lg"></i>
+                    </button>
+
+                    <!-- Título del módulo -->
+                    <h1 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-cog text-blue-600"></i>
+                        <?php echo $pageTitle; ?>
+                    </h1>
+
+                    <!-- Usuario / Logout -->
+                    <div class="flex items-center gap-4">
+                        <span class="text-gray-700 text-sm font-medium">
+                            <?php echo htmlspecialchars($userData['name'] ?? 'Usuario'); ?>                             
+                        </span>
+                        <a href="../../logout.php" class="text-gray-500 hover:text-red-600 transition-colors">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        <!-- Contenido principal -->
+        <main class="flex-1 p-8">
+            <div class="mb-6 flex justify-between items-center">
+<!--
             <div>
-                <h1 class="text-3xl font-bold text-gray-800 mb-2">
-                    <i class="fas fa-cog text-blue-600"></i>
-                    <?php echo $pageTitle; ?>
-                </h1>
-                <p class="text-gray-600">Administra las variables de configuración del sistema</p>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                        <i class="fas fa-cog text-blue-600"></i>
+                        <?php echo $pageTitle; ?>
+                    </h1>
+                    <p class="text-gray-600">Administra las variables de configuración del sistema</p>
+                </div>
+-->
+                <a href="../../dashboard.php" class="text-blue-600 hover:text-blue-800 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Volver al Dashboard
+                </a>
             </div>
-            <a href="../../dashboard.php" class="text-blue-600 hover:text-blue-800 transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i>
-                Volver al Dashboard
-            </a>
-        </div>
+
         <?php if ($message): ?>
         <div class="mb-6 p-4 rounded-lg <?php echo $messageType === 'success' ? 'bg-green-100 border border-green-400 text-green-700' : 'bg-red-100 border border-red-400 text-red-700'; ?>">
             <i class="fas <?php echo $messageType === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'; ?> mr-2"></i>
@@ -527,5 +568,7 @@ $pageTitle = 'Gestión de Variables del Sistema';
     <style>
         [x-cloak] { display: none !important; }
     </style> 
+        <script src="../../public/js/sidebar.js"></script>
+    <script src=".../../public/js/dashboard.js"></script>
 </body>
 </html>

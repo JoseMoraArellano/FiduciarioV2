@@ -14,9 +14,8 @@ class UsuariosManager {
         $this->db = Database::getInstance()->getConnection();
     }
     
-    // ========================================
-    // CRUD DE USUARIOS
-    // ========================================
+    // ============== CRUD DE USUARIOS ==============
+    
     
     /**
      * Obtener todos los usuarios con filtros
@@ -234,7 +233,9 @@ class UsuariosManager {
             ]);
             
             $userId = $stmt->fetch()['id'];
-            
+            // Registrar en historial
+
+            $this->addHistorial($userId, 'CREATE', 'Usuario creado', $data);
             // Crear perfil
             $this->createPerfil($userId, $data);
             
@@ -329,6 +330,12 @@ class UsuariosManager {
             
             // Actualizar perfil
             $this->updatePerfil($id, $data);
+
+            // Registrar cambios en historial
+            $changes = $this->compareChanges($oldData['data'], $data);
+            if (!empty($changes)) {
+                $this->addHistorial($id, 'UPDATE', 'usuario actualizado', $changes);
+            }            
             
             $this->db->commit();
             
@@ -363,6 +370,9 @@ class UsuariosManager {
             $sql = "UPDATE users SET statut = -1, updated_at = NOW() WHERE id = :id";
             $stmt = $this->db->prepare($sql);
             $stmt->execute(['id' => $id]);
+
+            // Registrar en historial
+            $this->addHistorial($id, 'DELETE', 'Usuario eliminado');
             
             return [
                 'success' => true,
@@ -403,6 +413,9 @@ class UsuariosManager {
             $stmt->execute(['id' => $id]);
             
             $newStatus = $stmt->fetch()['statut'];
+
+            // Registrar en historial
+            $this->addHistorial($id, 'STATUS_CHANGE', $newStatus ? 'Usuario activado' : 'Usuario desactivado');
             
             return [
                 'success' => true,
@@ -698,6 +711,7 @@ class UsuariosManager {
                 }
             }
             
+            $this->addHistorial($userId, 'PERMISSIONS_UPDATE', 'Permisos actualizados', $permissionIds);
             $this->db->commit();
             
             return [
@@ -833,7 +847,61 @@ class UsuariosManager {
     // ========================================
     // VALIDACIONES Y UTILIDADES
     // ========================================
-    
+        /**
+     * Agregar entrada al historial
+     */
+    private function addHistorial($userId, $accion, $descripcion, $datosAnteriores = null) {
+        try {
+            $sql = "
+                INSERT INTO t_client_log (
+                    fk_user, accion, descripcion,
+                    datos_anteriores, usuario_id, fecha
+                )
+                VALUES (
+                    :user_id, :accion, :descripcion,
+                    :datos_anteriores, :usuario_id, NOW()
+                )
+            ";
+            
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([
+                'user_id' => $userId,
+                'accion' => $accion,
+                'descripcion' => $descripcion,
+                'datos_anteriores' => $datosAnteriores ? json_encode($datosAnteriores) : null,
+                'usuario_id' => $_SESSION['user_id'] ?? 1
+            ]);
+            
+        } catch (PDOException $e) {
+            error_log("Error adding historial: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * comparar cambios entre datos antiguos y nuevos
+     */ 
+      
+         private function compareChanges($oldData, $newData) {
+        $changes = [];
+        
+        $fieldsToCompare = [
+            'name', 'email', 'email_verified_at', 'password', 'status'
+        ];
+        
+        foreach ($fieldsToCompare as $field) {
+            $old = $oldData[$field] ?? null;
+            $new = $newData[$field] ?? null;
+            
+            if ($old != $new) {
+                $changes[$field] = [
+                    'old' => $old,
+                    'new' => $new
+                ];
+            }
+        }
+        
+        return $changes;
+    }
     /**
      * Validar datos de usuario
      */

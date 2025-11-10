@@ -1,39 +1,51 @@
 <?php
-require_once 'includes/cliente.manager.php';
-require_once 'modules/clientes/permissions.php';
+require_once 'includes/ClienteManager.php';
+//require_once 'modules/clientes/permissions.php';
 
-$clientesManager = new ClientesManager();
+$clienteManager = new ClienteManager();
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $isEdit = $id > 0;
+// Variables para el formulario
 $cliente = null;
 $pageTitle = $isEdit ? 'Editar Cliente' : 'Nuevo Cliente';
 $submitText = $isEdit ? 'Actualizar Cliente' : 'Crear Cliente';
 
 // Verificar permisos
-if ($isEdit) {
-    // Verificar permiso para editar
-    if (!$clientePermissions->canEdit()) {
+if ($isEdit) {    
+        $result = $clienteManager->getCliente($id);
+        if (!$result['success']) {
+            echo '<div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded">';
+            echo '<i class="fas fa-exclamation-circle mr-2"></i>';
+            echo htmlspecialchars($result['message']);
+            echo '</div>';
+            return;
+        }    
+            $cliente = $result['data'];
+
+            // DEBUG TEMPORAL - BORRAR DESPUÉS
+            /*
+            echo '<pre style="background: #f0f0f0; padding: 10px; margin: 10px;">';
+            echo 'isEdit: ' . ($isEdit ? 'true' : 'false') . "\n";
+            echo 'ID: ' . $id . "\n";
+            echo 'Result success: ' . ($result['success'] ? 'true' : 'false') . "\n";
+            echo 'Cliente data: ';
+            var_dump($cliente);
+            echo '</pre>';
+            */
+            // FIN DEBUG
+    // DEBUG
+
+    
+    if (!$clienteManager->canEdit($userId,$id,$isAdmin)) {
         echo '<div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded">';
         echo '<i class="fas fa-lock mr-2"></i>';
-        echo 'No tienes permiso para editar clientes';
+        echo 'No tienes permiso para editar este cliente';
         echo '</div>';
         return;
-    }
-    
-    $result = $clientesManager->getCliente($id);
-    
-    if (!$result['success']) {
-        echo '<div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded">';
-        echo '<i class="fas fa-exclamation-circle mr-2"></i>';
-        echo htmlspecialchars($result['message']);
-        echo '</div>';
-        return;
-    }
-    
-    $cliente = $result['data'];
+    }    
 } else {
     // Verificar permiso para crear
-    if (!$clientePermissions->canCreate()) {
+    if (!$isAdmin && !$session->hasPermission('catalogos','creer'.'clientes')) {
         echo '<div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded">';
         echo '<i class="fas fa-lock mr-2"></i>';
         echo 'No tienes permiso para crear clientes';
@@ -43,9 +55,13 @@ if ($isEdit) {
 }
 
 // Obtener listas para selects
-$estados = $clientesManager->getEstados();
-$paises = $clientesManager->getPaises();
-$regimenesFiscales = $clientesManager->getRegimenesFiscales();
+$estados = $clienteManager->getEstados();
+$paises = $clienteManager->getPaises();
+$regimenesFiscales = $clienteManager->getRegimenesFiscales();
+
+// Recuperar datos del formulario si hay error
+$formData = $_SESSION['form_data'] ?? [];
+unset($_SESSION['form_data']);
 
 function getFieldValue($fieldName, $cliente, $formData, $default = '') {
     if (!empty($formData[$fieldName])) {
@@ -106,7 +122,7 @@ function getFieldValue($fieldName, $cliente, $formData, $default = '') {
             </div>
             
             <div class="flex items-center gap-2">
-                <?php if ($isEdit && $clientePermissions->canViewHistory()): ?>
+                <?php if ($isEdit ): ?>
                 <button 
                     @click="showHistory = true"
                     class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition flex items-center gap-2"
@@ -156,7 +172,7 @@ function getFieldValue($fieldName, $cliente, $formData, $default = '') {
                     Datos Fiscales
                 </button>
                 
-                <?php if ($clientePermissions->canManageDocuments()): ?>
+                 <?php if (isset($_SESSION['success'])): ?>
                 <button
                     @click="activeTab = 'documents'"
                     :class="activeTab === 'documents' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
@@ -672,7 +688,7 @@ function getFieldValue($fieldName, $cliente, $formData, $default = '') {
         </div>
         
         <!-- TAB: Documentos -->
-        <?php if ($clientePermissions->canManageDocuments()): ?>
+        <?php if ($clientePermissions): ?>
         <div x-show="activeTab === 'documents'" class="bg-white rounded-lg shadow p-6">
             
             <!-- Zona de carga de documentos -->

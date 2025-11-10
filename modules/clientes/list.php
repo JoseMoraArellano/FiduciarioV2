@@ -1,8 +1,8 @@
 <?php
-require_once 'includes/cliente.manager.php';
-require_once 'modules/clientes/permissions.php';
+require_once 'includes/ClienteManager.php';
+// require_once 'modules/clientes/permissions.php';
 
-$clientesManager = new ClientesManager();
+$clienteManager = new ClienteManager();
 
 // Paginación
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -21,25 +21,25 @@ $filters = [
 ];
 
 // Obtener datos
-$result = $clientesManager->getClientes($filters, $page, $perPage);
+$result = $clienteManager->getClientes($filters, $page, $perPage);
 $clientes = $result['data'] ?? [];
 $totalPages = $result['total_pages'] ?? 1;
 $total = $result['total'] ?? 0;
 
 // Obtener estadísticas
-$stats = $clientesManager->getStats();
+$stats = $clienteManager->getStats();
 
 // Obtener listas para filtros
-$estados = $clientesManager->getEstados();
-$regimenesFiscales = $clientesManager->getRegimenesFiscales();
+$estados = $clienteManager->getEstados();
+$regimenesFiscales = $clienteManager->getRegimenesFiscales();
 
 // Verificar permisos
-$canCreate = $isAdmin || $clientePermissions->canCreate();
-$canEdit =$isAdmin || $clientePermissions->canEdit();
-$canDelete = $isAdmin || $clientePermissions->canDelete();
-$canExport = $isAdmin || $clientePermissions->canExport();
-$canVerifyQSQ = $isAdmin || $clientePermissions->canVerifyQSQ();
-$canViewDocs = $isAdmin || $clientePermissions->canManageDocuments();
+$canCreate = $isAdmin || $session->hasPermission('catalogos', 'creer', 'clientes');
+$canEdit = $isAdmin || $session->hasPermission('catalogos', 'modifier', 'clientes');
+$canDelete = $isAdmin || $session->hasPermission('catalogos', 'supprimer', 'clientes');
+$canExport = $isAdmin || $session->hasPermission('catalogos', 'export', 'clientes');
+$canVerifyQSQ = $isAdmin || $session->hasPermission('catalogos', 'verify_qsq', 'clientes');
+$canViewDocs = $isAdmin || $session->hasPermission('catalogos', 'documents', 'clientes');
 ?>
 
 <div x-data="clientesListController()" x-init="init()">
@@ -603,7 +603,7 @@ $canViewDocs = $isAdmin || $clientePermissions->canManageDocuments();
 function clientesListController() {
     return {
         init() {
-            console.log('Lista de clientes inicializada');
+
         },
         
 
@@ -621,7 +621,7 @@ function clientesListController() {
             if (!confirm(`¿Deseas verificar el cliente "${clienteNombre}" en las listas negras?\n\nEsta acción puede tomar unos segundos.`)) {
                 return;
             }
-            
+            ;
             try {
                 // Mostrar loading en el botón
                 const buttons = document.querySelectorAll(`button[onclick*="verifyQSQ(${clienteId}"]`);
@@ -630,7 +630,7 @@ function clientesListController() {
                     btn.disabled = true;
                 });
                 
-                const response = await fetch('modules/clientes/accion.php', {
+                const response = await fetch('modules/clientes/action.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -685,57 +685,7 @@ function clientesListController() {
                 });
             }
         },
-        // Cambiar estado activo/inactivo
-        async toggleStatus(clienteId, clienteNombre, currentStatus) {
-            const action = currentStatus == 1 ? 'desactivar' : 'activar';
-            const actionText = currentStatus == 1 ? 'desactivación' : 'activación';
-            
-            if (!confirm(`¿Deseas ${action} el cliente "${clienteNombre}"?\n\nEl cliente no ${action == 'activar' ? 'estará disponible' : 'estará visible'} en el sistema después de esta acción.`)) {
-                return;
-            }
-            
-            try {
-                // Mostrar loading en el botón
-                const buttons = document.querySelectorAll(`button[onclick*="toggleStatus(${clienteId}"]`);
-                buttons.forEach(btn => {
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                    btn.disabled = true;
-                });
-                
-                const response = await fetch('modules/clientes/accion.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `action=toggle-status&id=${clienteId}`
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    alert(`✅ ${result.message}`);
-                    location.reload();
-                } else {
-                    alert(`❌ Error en ${actionText}: ${result.message}`);
-                    
-                    // Restaurar botones en caso de error
-                    buttons.forEach(btn => {
-                        btn.innerHTML = '<i class="fas fa-power-off"></i>';
-                        btn.disabled = false;
-                    });
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert(`❌ Error al ${action} cliente`);
-                
-                // Restaurar botones en caso de error
-                const buttons = document.querySelectorAll(`button[onclick*="toggleStatus(${clienteId}"]`);
-                buttons.forEach(btn => {
-                    btn.innerHTML = '<i class="fas fa-power-off"></i>';
-                    btn.disabled = false;
-                });
-            }
-        },
+
         // Eliminar cliente
         async deleteCliente(clienteId, clienteNombre) {
             if (!confirm(`⚠️ ELIMINACIÓN DE CLIENTE\n\n¿Estás seguro de eliminar el cliente "${clienteNombre}"?\n\nEsta acción marcará al cliente como inactivo y no se podrá deshacer fácilmente.`)) {
@@ -754,7 +704,7 @@ function clientesListController() {
                     btn.disabled = true;
                 });
                 
-                const response = await fetch('modules/clientes/accion.php', {
+                const response = await fetch('modules/clientes/action.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -788,114 +738,42 @@ function clientesListController() {
                 });
             }
         },
-        /*        
-        // Cambiar estado activo/inactivo
-        async toggleStatus(clienteId, clienteNombre, currentStatus) {
-            const action = currentStatus == 1 ? 'desactivar' : 'activar';
-            
-            if (!confirm(`¿Deseas ${action} el cliente "${clienteNombre}"?`)) {
-                return;
-            }
-            
-            try {
-                const response = await fetch('modules/clientes/accion.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `action=toggle-status&id=${clienteId}`
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    alert(result.message);
-                    location.reload();
-                } else {
-                    alert(`Error: ${result.message}`);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al cambiar estado');
-            }
-        },
+               
 
-        // Verificar QSQ de un cliente
-        async verifyQSQ(clienteId, clienteNombre) {
-            if (!confirm(`¿Deseas verificar el cliente "${clienteNombre}" en las listas negras?`)) {
-                return;
-            }
-            
-            try {
-                const response = await fetch('modules/clientes/accion.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `action=verify_qsq_single&id=${clienteId}`
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    if (result.data.valid) {
-                        alert(`✓ Verificación exitosa\n\n${result.data.messages.join('\n')}`);
-                    } else {
-                        alert(`⚠ Alertas encontradas\n\n${result.data.messages.join('\n')}`);
-                    }
-                    location.reload();
-                } else {
-                    alert(`Error: ${result.message}`);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al verificar QSQ');
-            }
-        },
+// Cambiar estado activo/inactivo
+async toggleStatus(clienteId, clienteNombre, currentStatus) {
+    const action = currentStatus == 1 ? 'desactivar' : 'activar';
+    
+    if (!confirm(`¿Deseas ${action} el cliente "${clienteNombre}"?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('modules/clientes/action.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `action=toggle-status&id=${clienteId}`
+        });
+        
+        const text = await response.text();
+        const result = JSON.parse(text);
+        
+        if (result.success) {
+            alert(result.message);
+            location.reload();
+        } else {
+            alert(`Error: ${result.message}`);
+        }
+    } catch (error) {
+        console.error('Error completo:', error);
+        alert(`Error al cambiar estado: ${error.message}`);
+    }
+},
+ 
+         
 
-        // Eliminar cliente
-        async deleteCliente(clienteId, clienteNombre) {
-            if (!confirm(`¿Estás seguro de eliminar el cliente "${clienteNombre}"?\n\nEsta acción no se puede deshacer.`)) {
-                return;
-            }
-            
-            if (!confirm(`SEGUNDA CONFIRMACIÓN\n\n¿Realmente deseas eliminar definitivamente el cliente "${clienteNombre}"?`)) {
-                return;
-            }
-            
-            try {
-                const response = await fetch('modules/clientes/accion.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `action=delete&id=${clienteId}`
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    alert(result.message);
-                    location.reload();
-                } else {
-                    alert(`Error: ${result.message}`);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al eliminar cliente');
-            }
-        },
-    */      
-        // Exportar a Excel
-/*        
-        async exportToExcel() {
-            const params = new URLSearchParams(window.location.search);
-            params.set('action', 'export-excel');
-            
-            window.location.href = `modules/clientes/export.php?${params.toString()}`;
-        },
- */
-        // Exportar a Excel
         async exportToExcel() {
             try {
                 // Mostrar loading
@@ -969,4 +847,5 @@ function clientesListController() {
                 }
             };
 }
+
 </script>
