@@ -9,10 +9,10 @@ $action = $_POST['action'] ?? '';
 
 
 $permissions = new Permissions();
-$canView = $permissions->hasPermission('tiie', 'lire');
-$canCreate = $permissions->hasPermission('tiie', 'creer');
-$canEdit = $permissions->hasPermission('tiie', 'modifier');
-$canDelete = $permissions->hasPermission('tiie', 'supprimer');
+$canView = $permissions->hasPermission('inpc', 'lire');
+$canCreate = $permissions->hasPermission('inpc', 'creer');
+$canEdit = $permissions->hasPermission('inpc', 'modifier');
+$canDelete = $permissions->hasPermission('inpc', 'supprimer');
 $isAdmin = $permissions->isAdmin();
 
 $response = ['success' => false, 'message' => ''];
@@ -26,20 +26,20 @@ switch ($action) {
         }
         
         $fecha = $_POST['fecha'] ?? '';
-        $dato = $_POST['dato'] ?? 0;
+        $indice = $_POST['indice'] ?? 0;
         $activo = isset($_POST['activo']) ? 1 : 0;
         $usuario = $_SESSION['username'] ?? 'sistema';
                 
         
         try {
-            $stmt = $db->prepare("INSERT INTO t_tiie (fecha, dato, activo, fecha_insercion, hora_insercion, usuausuario) 
-                                  VALUES (?, ?, ?, CURRENT_DATE, CURRENT_TIME, ?)");
+            $stmt = $db->prepare("INSERT INTO t_inpc (fecha, indice, fecha_captura, hora_captura, usuausuario) 
+                                  VALUES (?, ?, CURRENT_DATE, CURRENT_TIME, ?)");
             
             file_put_contents($debugFile, "Ejecutando INSERT...\n", FILE_APPEND);
             
             $stmt->execute([
                 $fecha, 
-                $dato, 
+                $indice, 
                 $activo,
                 $usuario
             ]);                        
@@ -59,12 +59,12 @@ switch ($action) {
         
         $id = $_POST['id'] ?? 0;
         $fecha = $_POST['fecha'] ?? '';
-        $dato = $_POST['dato'] ?? 0;
+        $indice = $_POST['indice'] ?? 0;
         $activo = isset($_POST['activo']) ? 1 : 0;
         
         try {
-            $stmt = $db->prepare("UPDATE t_tiie SET fecha = ?, dato = ?, activo = ? WHERE id = ?");
-            $stmt->execute([$fecha, $dato, $activo, $id]);
+            $stmt = $db->prepare("UPDATE t_inpc SET fecha = ?, indice = ?, activo = ? WHERE id = ?");
+            $stmt->execute([$fecha, $indice, $activo, $id]);
             
             $response['success'] = true;
             $response['message'] = 'Registro actualizado';
@@ -83,7 +83,7 @@ switch ($action) {
         $id = $_POST['id'] ?? 0;
         
         try {
-            $stmt = $db->prepare("UPDATE t_tiie SET activo = false WHERE id = ?");
+            $stmt = $db->prepare("UPDATE t_inpc SET activo = false WHERE id = ?");
             $stmt->execute([$id]);
             
             $response['success'] = true;
@@ -100,7 +100,7 @@ switch ($action) {
         $id = $_GET['id'] ?? 0;
         
         try {
-            $stmt = $db->prepare("SELECT * FROM t_tiie WHERE id = ?");
+            $stmt = $db->prepare("SELECT * FROM t_inpc WHERE id = ?");
             $stmt->execute([$id]);
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
             

@@ -108,6 +108,18 @@ $modulesMetadata = [
         'icon' => 'fa-percentage',
         'description' => 'Gestión de Tasas de Interés Interbancarias de Equilibrio',
         'path' => 'modules/tiie/'
+    ],
+    'inpc' => [
+        'title' => 'INPC',
+        'icon' => 'fa-percentage',
+        'description' => 'Indice de precios al consumidor',
+        'path' => 'modules/inpc/'
+    ],
+        'udis' => [
+        'title' => 'Udis',
+        'icon' => 'fa-percentage',
+        'description' => 'Indice de precios al consumidor',
+        'path' => 'modules/udis/'
     ]
 
     // ... otros módulos (agregar según necesites)
