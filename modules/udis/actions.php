@@ -14,7 +14,6 @@ $canCreate = $permissions->hasPermission('tiie', 'creer');
 $canEdit = $permissions->hasPermission('tiie', 'modifier');
 $canDelete = $permissions->hasPermission('tiie', 'supprimer');
 $isAdmin = $permissions->isAdmin();
-
 $response = ['success' => false, 'message' => ''];
 
 switch ($action) {
