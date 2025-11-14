@@ -19,21 +19,19 @@ $userId = $session->getUserId();
 $isAdmin = $session->isAdmin();
 
 $canView = $isAdmin 
-    || $permissions->hasPermission($userId, 'inpc', 'lire')
-    || $session->hasPermission('catalogos', 'lire', 'inpc');
+    || $permissions->hasPermission($userId, 'cpp', 'lire')
+    || $session->hasPermission('catalogos', 'lire', 'cpp');
 
 $canCreate = $isAdmin 
-    || $permissions->hasPermission($userId, 'inpc', 'creer')
-    || $session->hasPermission('catalogos', 'creer', 'inpc');
+    || $permissions->hasPermission($userId, 'cpp', 'creer')
+    || $session->hasPermission('catalogos', 'creer', 'cpp');
 
 $canEdit = $isAdmin 
-    || $permissions->hasPermission($userId, 'inpc', 'modifier')
-    || $session->hasPermission('catalogos', 'modifier', 'inpc');
-
+    || $permissions->hasPermission($userId, 'cpp', 'modifier')
+    || $session->hasPermission('catalogos', 'modifier', 'cpp');
 $canDelete = $isAdmin 
-    || $permissions->hasPermission($userId, 'inpc', 'supprimer')
-    || $session->hasPermission('catalogos', 'supprimer', 'inpc');
-
+    || $permissions->hasPermission($userId, 'cpp', 'supprimer')
+    || $session->hasPermission('catalogos', 'supprimer', 'cpp');
 
 if (!$canView) {
     echo '<div class="p-6"><div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded">No tienes permisos para ver este módulo</div></div>';
@@ -44,7 +42,7 @@ $fecha_inicio = $_GET['fecha_inicio'] ?? date('Y-m-01');
 $fecha_fin = $_GET['fecha_fin'] ?? date('Y-m-t');
 
 try {
-    $query = "SELECT * FROM t_inpc 
+    $query = "SELECT * FROM t_cpp 
               WHERE fecha BETWEEN ? AND ? 
               ORDER BY fecha DESC";
     $stmt = $db->prepare($query);
@@ -71,7 +69,7 @@ if (!empty($registros)) {
     $min = null;
     $activos = 0;
     foreach ($registros as $r) {
-        $val = floatval($r['indice']);
+        $val = floatval($r['tasa']);
         $sum += $val;
         if ($max === null || $val > $max) $max = $val;
         if ($min === null || $val < $min) $min = $val;
@@ -88,17 +86,17 @@ if (!empty($registros)) {
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.0/dist/tailwind.min.css" rel="stylesheet">
 <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-<div x-data="inpcController()" x-init="init()" class="p-6 space-y-6">
+<div x-data="cppController()" x-init="init()" class="p-6 space-y-6">
 
     <!-- Header -->
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-semibold text-gray-800"><i class="fas fa-percentage mr-2"></i> Gestión de Indice de Precios al Consumidor</h1>
-<!--            <p class="text-sm text-gray-500">índice de precios al consumido</p> -->
+            <h1 class="text-2xl font-semibold text-gray-800"><i class="fas fa-percentage mr-2"></i>Gestión de Costo porcentual promedio de captación</h1>
+<!--            <p class="text-sm text-gray-500"> </p> -->
         </div>
         <?php if ($canCreate): ?>
         <button @click="openCreateModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-            <i class="fas fa-plus"></i> Nuevo Indice
+            <i class="fas fa-plus"></i> Nueva Tasa
         </button>
         <?php endif; ?>
     </div>
@@ -169,7 +167,7 @@ if (!empty($registros)) {
     <!-- Filtros -->
     <div class="bg-white rounded-lg shadow p-4">
         <form method="GET" action="" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-            <input type="hidden" name="mod" value="inpc">
+            <input type="hidden" name="mod" value="cpp">
             <div>
                 <label class="block text-sm text-gray-600">Fecha inicio</label>
                 <input type="date" name="fecha_inicio" value="<?= htmlspecialchars($fecha_inicio); ?>" class="mt-1 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -180,7 +178,7 @@ if (!empty($registros)) {
             </div>
             <div class="flex gap-2">
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Filtrar</button>
-                <a href="catalogos.php?mod=inpc" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Limpiar</a>
+                <a href="catalogos.php?mod=cpp" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Limpiar</a>
             </div>
         </form>
     </div>
@@ -201,8 +199,8 @@ if (!empty($registros)) {
                             <div class="flex items-center gap-2">Fecha <span x-show="sort.column === 'fecha'"> <template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
                         </th>
 
-                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('indice')">
-                            <div class="flex items-center justify-end gap-2">Indice <span x-show="sort.column === 'indice'"> <template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
+                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('tasa')">
+                            <div class="flex items-center justify-end gap-2">Tasa <span x-show="sort.column === 'tasa'"> <template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
                         </th>
 
                         <?php if ($isAdmin): ?>
@@ -220,10 +218,9 @@ if (!empty($registros)) {
                         <?php endif; ?>
 
                         <td class="px-4 py-3 text-sm text-gray-700"><?= date('d/m/Y', strtotime($row['fecha'])); ?></td>
-                        <td class="px-4 py-3 text-sm text-gray-700 text-right"><?= number_format($row['indice'], 4); ?></td>
+                        <td class="px-4 py-3 text-sm text-gray-700 text-right"><?= number_format($row['tasa'], 4); ?></td>
 
                         <?php if ($isAdmin): ?>
-
                         <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($row['usuario'] ?? $row['usuario'] ?? ''); ?></td>
                         <td class="px-4 py-3 text-sm text-gray-700"><?= date('d/m/Y', strtotime($row['fecha_captura'])) . ' ' . htmlspecialchars($row['hora_captura']); ?></td>
                         <td class="px-4 py-3 text-center">
@@ -269,11 +266,11 @@ if (!empty($registros)) {
                 </div>
 
                 <div>
-                    <label class="block text-sm text-gray-600">Indice *</label>
-                    <input type="number" step="0.0001" min="0" max="300" x-model="form.indice" required class="mt-1 w-full px-3 py-2 border rounded-lg">
+                    <label class="block text-sm text-gray-600">Tasa</label>
+                    <input type="number" step="0.0001" min="0" max="100" x-model="form.tasa" required class="mt-1 w-full px-3 py-2 border rounded-lg">
                     <p class="text-xs text-gray-500 mt-1">Ingrese el valor</p>
                 </div>
-            
+
 
                 <div class="flex justify-end gap-2">
                     <button type="button" @click="closeModal()" class="px-4 py-2 bg-gray-200 rounded">Cancelar</button>
@@ -286,7 +283,7 @@ if (!empty($registros)) {
 </div>
 
 <script>
-function inpcController() {
+function cppController() {
     return {
         // Datos iniciales (inyectar registros desde PHP para ordenamiento client-side)
         registros: <?= json_encode(array_map(function($r){
@@ -294,8 +291,8 @@ function inpcController() {
             return [
                 'id' => $r['id'],
                 'fecha' => $r['fecha'],
-                'indice' => floatval($r['indice']),
-                'activo' => !empty($r['activo']) ? 1 : 0,
+                'tasa' => floatval($r['tasa']),
+//                'activo' => !empty($r['activo']) ? 1 : 0,
                 'usuario' => $r['usuario'] ?? $r['usuario'] ?? '',
                 'fecha_captura' => $r['fecha_captura'],
                 'hora_captura' => $r['hora_captura'],
@@ -305,7 +302,7 @@ function inpcController() {
         sort: { column: 'fecha', desc: true },
 
         modal: { open: false, title: '', actionText: '' },
-        form: { id: '', fecha: '', indice: '', activo: 1 },
+        form: { id: '', fecha: '', valor: '' },
 
         init() {
             // Render inicial (ya están los rows generados por PHP en DOM, pero mantenemos registros para resort)
@@ -361,12 +358,16 @@ function inpcController() {
                 tdFecha.textContent = dd;
                 tr.appendChild(tdFecha);
 
-                const tdDato = document.createElement('td');
-                tdDato.className = 'px-4 py-3 text-sm text-gray-700 text-right';
-                tdDato.textContent = Number(r.indice).toFixed(4); // CORREGIDO
-                tr.appendChild(tdDato);
+                const tdValor = document.createElement('td');
+                tdValor.className = 'px-4 py-3 text-sm text-gray-700 text-right';
+                tdValor.textContent = Number(r.valor).toFixed(4);
+                tr.appendChild(tdValor);
 
                 if (isAdmin) {
+                    const tdEstado = document.createElement('td');
+                    tdEstado.className = 'px-4 py-3 text-sm';
+//                    tdEstado.innerHTML = r.activo ? '<span class="inline-flex items-center px-2 py-1 rounded text-xs bg-green-100 text-green-800">Activo</span>' : '<span class="inline-flex items-center px-2 py-1 rounded text-xs bg-red-100 text-red-800">Inactivo</span>';
+                    tr.appendChild(tdEstado);
 
                     const tdUsuario = document.createElement('td');
                     tdUsuario.className = 'px-4 py-3 text-sm text-gray-700';
@@ -375,7 +376,7 @@ function inpcController() {
 
                     const tdRegistro = document.createElement('td');
                     tdRegistro.className = 'px-4 py-3 text-sm text-gray-700';
-                    tdRegistro.textContent = r.fecha_captura + ' ' + (r.hora_captura || ''); // <-- ¡Aquí está el problema!
+                    tdRegistro.textContent = r.fecha_captura + ' ' + (r.hora_captura || '');
                     tr.appendChild(tdRegistro);
 
                     const tdAcc = document.createElement('td');
@@ -393,21 +394,23 @@ function inpcController() {
 
         openCreateModal() {
             this.modal.open = true;
-            this.modal.title = 'Nuevo Indice inpc';
+            this.modal.title = 'Nuevo Valor Tasa de cambio';
             this.modal.actionText = 'Guardar';
-            this.form = { id: '', fecha: '', indice: '' };
+            this.form = { id: '', fecha: '', tasa: ''};
         },
 
         openEditModal(id) {
-            fetch(`modules/inpc/actions.php?action=get&id=${id}`)
+            console.log('Solicitando ID:', id);
+            fetch(`modules/cpp/actions.php?action=get&id=${id}`)
                 .then(r => r.json())
                 .then(resp => {
+                    console.log('Respuesta recibida:', resp); 
                     if (resp.success) {
                         this.form.id = resp.data.id;
                         this.form.fecha = resp.data.fecha;
-                        this.form.indice = resp.data.indice;
+                        this.form.tasa = resp.data.tasa;
                         this.modal.open = true;
-                        this.modal.title = 'Editar Indice inpc';
+                        this.modal.title = 'Editar Tasa de cambio';
                         this.modal.actionText = 'Actualizar';
                     } else {
                         alert(resp.message || 'No se pudo obtener el registro.');
@@ -420,46 +423,51 @@ function inpcController() {
 
         closeModal() {
             this.modal.open = false;
-            
         },
 
         submitForm() {
-            const action = this.form.id ? 'update' : 'create';
-            const body = new URLSearchParams();
-            body.append('action', action);
-            if (this.form.id) body.append('id', this.form.id);
-            body.append('fecha', this.form.fecha);
-            body.append('indice', this.form.indice);
-//    console.log('Datos enviados:', Object.fromEntries(body));
-//    console.log('Form original:', this.form);            
+                const action = this.form.id ? 'update' : 'create';
+                const body = new URLSearchParams();
+                body.append('action', action);
+                if (this.form.id) body.append('id', this.form.id);
+                body.append('fecha', this.form.fecha);
+                body.append('tasa', this.form.tasa);
 
-            fetch('modules/inpc/actions.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: body.toString()
-            }).then(async r => {                
-                try {
-                    const data = await r.json();
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert(data.message || 'Error al guardar.');
+                fetch('modules/cpp/actions.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: body.toString()
+                }).then(async r => {
+                    console.log('Status:', r.status);
+                    const text = await r.text();
+                    console.log('Respuesta raw:', text);
+                    
+                    try {
+                        const data = JSON.parse(text);
+                        console.log('Respuesta parseada:', data);
+                        
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert(data.message || 'Error al guardar.');
+                        }
+                    } catch (err) {
+                        console.error('Error al parsear respuesta:', err);
+                        console.log('Texto recibido:', text);
+                        alert('Error al procesar respuesta del servidor'+ text.substring(0, 500));
                     }
-                } catch (err) {
-                    location.reload();
-                }
-            }).catch(err => {
-                console.error(err);
-                alert('Error en la petición.');
-            });
-        },
+                }).catch(err => {
+                    console.error('Error en fetch:', err);
+                    alert('Error en la petición.');
+                });
+            },
 
         confirmDelete(id) {
             if (!confirm('¿Está seguro de eliminar este registro?')) return;
             const body = new URLSearchParams();
             body.append('action', 'delete');
             body.append('id', id);
-            fetch('modules/inpc/actions.php', {
+            fetch('modules/cpp/actions.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: body.toString()

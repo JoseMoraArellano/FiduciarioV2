@@ -115,12 +115,24 @@ $modulesMetadata = [
         'description' => 'Indice de precios al consumidor',
         'path' => 'modules/inpc/'
     ],
-        'udis' => [
-        'title' => 'Udis',
+    'udis' => [
+        'title' => 'UDIS',
         'icon' => 'fa-percentage',
-        'description' => 'Unidades de Inversión',
+        'description' => 'Unidad de Inversión',
         'path' => 'modules/udis/'
-    ]
+    ],
+    'tdc' => [
+        'title' => 'TDC',
+        'icon' => 'fa-exchange-alt',
+        'description' => 'Tasas de Cambio',
+        'path' => 'modules/tdc/'
+    ],
+    'cpp' => [
+        'title' => 'CPP',
+        'icon' => 'fa-file-invoice-dollar',
+        'description' => 'Catálogo de CPP',
+        'path' => 'modules/cpp/'
+    ],
 
     // ... otros módulos (agregar según necesites)
 ];
@@ -204,6 +216,8 @@ $sidebar = new Sidebar($userPermissions, $userId, 'catalogos.php', $isAdmin);
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Alpine.js -->
+     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     <!-- Font Awesome -->

@@ -34,10 +34,6 @@ $canDelete = $isAdmin
     || $permissions->hasPermission($userId, 'udis', 'supprimer')
     || $session->hasPermission('catalogos', 'supprimer', 'udis');
 
-// var_dump($session->hasPermission('catalogos', 'creer', 'udis')); // debería ser true
-// var_dump($session->hasPermission('udis', 'lire')); // si el módulo udis también se chequea así
-
-
 if (!$canView) {
     echo '<div class="p-6"><div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded">No tienes permisos para ver este módulo</div></div>';
     exit;
@@ -96,8 +92,8 @@ if (!empty($registros)) {
     <!-- Header -->
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-semibold text-gray-800"><i class="fas fa-percentage mr-2"></i> Gestión de UDIS</h1>
-            <p class="text-sm text-gray-500">Unidades de Inversión</p>
+            <h1 class="text-2xl font-semibold text-gray-800"><i class="fas fa-percentage mr-2"></i> Gestión de Unidad de Inversión</h1>
+<!--            <p class="text-sm text-gray-500">Unidades de Inversión</p>  -->
         </div>
         <?php if ($canCreate): ?>
         <button @click="openCreateModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">

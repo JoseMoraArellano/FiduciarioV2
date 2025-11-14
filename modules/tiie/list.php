@@ -93,8 +93,8 @@ if (!empty($registros)) {
     <!-- Header -->
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-semibold text-gray-800"><i class="fas fa-percentage mr-2"></i> Gestión de TIIE</h1>
-            <p class="text-sm text-gray-500">Tasas de Interés Interbancarias de Equilibrio</p>
+            <h1 class="text-2xl font-semibold text-gray-800"><i class="fas fa-percentage mr-2"></i> Gestión de Gestión de Tasas de Interés Interbancarias de Equilibrio</h1>
+<!--            <p class="text-sm text-gray-500">Tasas de Interés Interbancarias de Equilibrio</p> -->
         </div>
         <?php if ($canCreate): ?>
         <button @click="openCreateModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
