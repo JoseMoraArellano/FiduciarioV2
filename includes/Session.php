@@ -67,7 +67,10 @@ class Session {
         
         return true;
     }
-    
+    /**
+ * Obtiene el nombre de usuario (o email si no existe)
+ */
+
     /**
      * Inicia sesión de usuario
      */
@@ -161,7 +164,9 @@ class Session {
 public function isAdmin() {
     return isset($_SESSION['admin']) && $_SESSION['admin'] == 1;
 }
-    
+public function getUsername() {
+    return $_SESSION['name'] ?? $_SESSION['email'] ?? 'Sistema';
+}    
     /**
      * Cierra la sesión del usuario
      */

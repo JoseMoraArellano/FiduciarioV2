@@ -5,52 +5,63 @@ require_once '../../includes/Session.php';
 require_once '../../includes/Permissions.php';
 
 $db = Database::getInstance()->getConnection();
-$action = $_POST['action'] ?? '';
-
+$action = $_POST['action'] ?? $_GET['action'] ?? '';
+$userId = $_SESSION['user_id'] ?? 0;
 
 $permissions = new Permissions();
-$canView = $permissions->hasPermission('tiie', 'lire');
-$canCreate = $permissions->hasPermission('tiie', 'creer');
-$canEdit = $permissions->hasPermission('tiie', 'modifier');
-$canDelete = $permissions->hasPermission('tiie', 'supprimer');
-$isAdmin = $permissions->isAdmin();
+$canView = $permissions->hasPermission($userId,'udis', 'lire');
+$canCreate = $permissions->hasPermission($userId,'udis', 'creer');
+$canEdit = $permissions->hasPermission($userId,'udis', 'modifier');
+$canDelete = $permissions->hasPermission($userId,'udis', 'supprimer');
+
+$session = new Session();
+$isAdmin = $session->isAdmin();
+
 $response = ['success' => false, 'message' => ''];
 
 switch ($action) {
     case 'create':
-        
-        if (!$canCreate && !$isAdmin) {            
-            $response['message'] = 'Sin permisos para crear';
-            break;
-        }
-        
-        $fecha = $_POST['fecha'] ?? '';
-        $dato = $_POST['dato'] ?? 0;
-        $activo = isset($_POST['activo']) ? 1 : 0;
-        $usuario = $_SESSION['username'] ?? 'sistema';
-                
-        
-        try {
-            $stmt = $db->prepare("INSERT INTO t_tiie (fecha, dato, activo, fecha_insercion, hora_insercion, usuausuario) 
-                                  VALUES (?, ?, ?, CURRENT_DATE, CURRENT_TIME, ?)");
-            
-            file_put_contents($debugFile, "Ejecutando INSERT...\n", FILE_APPEND);
-            
-            $stmt->execute([
-                $fecha, 
-                $dato, 
-                $activo,
-                $usuario
-            ]);                        
-            
-            $response['success'] = true;
-            $response['message'] = 'Registro creado exitosamente';
-        } catch (PDOException $e) {            
-            $response['message'] = 'Error al crear: ' . $e->getMessage();
-        }
+    
+    if (!$canCreate && !$isAdmin) {            
+        $response['message'] = 'Sin permisos para crear';
         break;
+    }
+    
+    $fecha = $_POST['fecha'] ?? '';
+    $valor = $_POST['valor'] ?? 0;
+    $usuario = $_SESSION['username'] ?? 'sistema';
+    
+    // Hacer explícitas fecha y hora de captura
+    $fecha_captura = date('Y-m-d H:i:s'); // Para timestamp
+    $hora_captura = date('H:i:s'); // Para varchar formato hora
+    
+    try {
+                    $stmtCheck = $db->prepare("SELECT COUNT(*) as total FROM t_udis WHERE DATE(fecha) = DATE(?)");
+            $stmtCheck->execute([$fecha]);
+            $existe = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+            
+            if ($existe['total'] > 0) {
+                $response['success'] = false;
+                $response['message'] = 'Ya existe un registro con esta fecha';
+                break;
+            }
+        $stmt = $db->prepare("INSERT INTO t_udis (fecha, valor, fecha_captura, hora_captura, usuario) 
+                      VALUES (?, ?, NOW(), ?, ?)");              
+        $stmt->execute([
+            $fecha,
+            $valor,
+            $hora_captura,
+            $usuario
+        ]);
         
-    case 'update':
+        $response['success'] = true;
+        $response['message'] = 'Registro creado exitosamente';
+    } catch (PDOException $e) {
+        $response['message'] = 'Error al crear: '. $e->getMessage();
+    }
+    break;
+        
+     case 'update':
         if (!$canEdit && !$isAdmin) {
             $response['message'] = 'Sin permisos para editar';
             break;
@@ -58,12 +69,23 @@ switch ($action) {
         
         $id = $_POST['id'] ?? 0;
         $fecha = $_POST['fecha'] ?? '';
-        $dato = $_POST['dato'] ?? 0;
-        $activo = isset($_POST['activo']) ? 1 : 0;
+        $valor = $_POST['valor'] ?? 0;
         
-        try {
-            $stmt = $db->prepare("UPDATE t_tiie SET fecha = ?, dato = ?, activo = ? WHERE id = ?");
-            $stmt->execute([$fecha, $dato, $activo, $id]);
+        try {        
+        $stmtCheck = $db->prepare("SELECT COUNT(*) as total 
+                                   FROM t_udis 
+                                   WHERE DATE(fecha) = DATE(?) 
+                                   AND id != ?");
+        $stmtCheck->execute([$fecha, $id]);
+        $existe = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+        
+        if ($existe['total'] > 0) {
+            $response['success'] = false;
+            $response['message'] = 'Ya existe otro registro con esta fecha';
+            break;
+        }
+            $stmt = $db->prepare("UPDATE t_udis SET fecha = ?, valor = ? WHERE id = ?");
+            $stmt->execute([$fecha, $valor,  $id]);
             
             $response['success'] = true;
             $response['message'] = 'Registro actualizado';
@@ -82,7 +104,7 @@ switch ($action) {
         $id = $_POST['id'] ?? 0;
         
         try {
-            $stmt = $db->prepare("UPDATE t_tiie SET activo = false WHERE id = ?");
+            $stmt = $db->prepare("DELETE FROM t_udis WHERE id = ?");
             $stmt->execute([$id]);
             
             $response['success'] = true;
@@ -99,9 +121,13 @@ switch ($action) {
         $id = $_GET['id'] ?? 0;
         
         try {
-            $stmt = $db->prepare("SELECT * FROM t_tiie WHERE id = ?");
+            $stmt = $db->prepare("SELECT * FROM t_udis WHERE id = ?");
             $stmt->execute([$id]);
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (isset($data['fecha'])) {            
+                $data['fecha'] = date('Y-m-d', strtotime($data['fecha']));
+            }
             
             if ($data) {
                 $response['success'] = true;
@@ -119,4 +145,3 @@ switch ($action) {
 }
 header('Content-Type: application/json');
 echo json_encode($response);
-?>

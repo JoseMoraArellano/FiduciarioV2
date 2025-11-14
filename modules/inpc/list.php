@@ -17,8 +17,7 @@ $permissions = new Permissions();
 
 $userId = $session->getUserId();
 $isAdmin = $session->isAdmin();
-//var_dump('session->getUserId', $session->getUserId());
-// var_dump('$_SESSION keys', array_keys($_SESSION));
+
 $canView = $isAdmin 
     || $permissions->hasPermission($userId, 'inpc', 'lire')
     || $session->hasPermission('catalogos', 'lire', 'inpc');
@@ -34,9 +33,6 @@ $canEdit = $isAdmin
 $canDelete = $isAdmin 
     || $permissions->hasPermission($userId, 'inpc', 'supprimer')
     || $session->hasPermission('catalogos', 'supprimer', 'inpc');
-
-// var_dump($session->hasPermission('catalogos', 'lire', 'inpc')); // debería ser true
-// var_dump($session->hasPermission('inpc', 'lire')); // si el módulo inpc también se chequea así
 
 
 if (!$canView) {
@@ -210,7 +206,6 @@ if (!empty($registros)) {
                         </th>
 
                         <?php if ($isAdmin): ?>
-<!--                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th> -->
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registro</th>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
@@ -229,7 +224,7 @@ if (!empty($registros)) {
 
                         <?php if ($isAdmin): ?>
 
-                        <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($row['usuausuario'] ?? $row['usuario'] ?? ''); ?></td>
+                        <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($row['usuario'] ?? $row['usuario'] ?? ''); ?></td>
                         <td class="px-4 py-3 text-sm text-gray-700"><?= date('d/m/Y', strtotime($row['fecha_captura'])) . ' ' . htmlspecialchars($row['hora_captura']); ?></td>
                         <td class="px-4 py-3 text-center">
                             <div class="inline-flex gap-2">
@@ -275,17 +270,10 @@ if (!empty($registros)) {
 
                 <div>
                     <label class="block text-sm text-gray-600">Indice *</label>
-                    <input type="number" step="0.0001" min="0" max="100" x-model="form.indice" required class="mt-1 w-full px-3 py-2 border rounded-lg">
+                    <input type="number" step="0.0001" min="0" max="300" x-model="form.indice" required class="mt-1 w-full px-3 py-2 border rounded-lg">
                     <p class="text-xs text-gray-500 mt-1">Ingrese el valor</p>
                 </div>
-
-             
-                <div class="flex items-center gap-3">
-                    <label class="inline-flex items-center gap-2">
-                        <input type="checkbox" x-model="form.activo" class="form-checkbox h-4 w-4">
-                        <span class="text-sm text-gray-600">Registro Activo</span>
-                    </label>
-                </div>
+            
 
                 <div class="flex justify-end gap-2">
                     <button type="button" @click="closeModal()" class="px-4 py-2 bg-gray-200 rounded">Cancelar</button>
@@ -308,7 +296,7 @@ function inpcController() {
                 'fecha' => $r['fecha'],
                 'indice' => floatval($r['indice']),
                 'activo' => !empty($r['activo']) ? 1 : 0,
-                'usuario' => $r['usuausuario'] ?? $r['usuario'] ?? '',
+                'usuario' => $r['usuario'] ?? $r['usuario'] ?? '',
                 'fecha_captura' => $r['fecha_captura'],
                 'hora_captura' => $r['hora_captura'],
             ];
@@ -379,11 +367,7 @@ function inpcController() {
                 tr.appendChild(tdDato);
 
                 if (isAdmin) {
-/*                    const tdEstado = document.createElement('td');
-                    tdEstado.className = 'px-4 py-3 text-sm';
-                    tdEstado.innerHTML = r.activo ? '<span class="inline-flex items-center px-2 py-1 rounded text-xs bg-green-100 text-green-800">Activo</span>' : '<span class="inline-flex items-center px-2 py-1 rounded text-xs bg-red-100 text-red-800">Inactivo</span>';
-                    tr.appendChild(tdEstado);
-*/
+
                     const tdUsuario = document.createElement('td');
                     tdUsuario.className = 'px-4 py-3 text-sm text-gray-700';
                     tdUsuario.textContent = r.usuario || '';
@@ -411,11 +395,10 @@ function inpcController() {
             this.modal.open = true;
             this.modal.title = 'Nuevo Indice inpc';
             this.modal.actionText = 'Guardar';
-            this.form = { id: '', fecha: '', indice: '', activo: 1 };
+            this.form = { id: '', fecha: '', indice: '' };
         },
 
         openEditModal(id) {
-            // Fetch registro desde backend
             fetch(`modules/inpc/actions.php?action=get&id=${id}`)
                 .then(r => r.json())
                 .then(resp => {
@@ -423,7 +406,6 @@ function inpcController() {
                         this.form.id = resp.data.id;
                         this.form.fecha = resp.data.fecha;
                         this.form.indice = resp.data.indice;
-                        this.form.activo = resp.data.activo == 1 ? 1 : 0;
                         this.modal.open = true;
                         this.modal.title = 'Editar Indice inpc';
                         this.modal.actionText = 'Actualizar';
@@ -438,24 +420,24 @@ function inpcController() {
 
         closeModal() {
             this.modal.open = false;
+            
         },
 
         submitForm() {
-            // Decide action: create or update
             const action = this.form.id ? 'update' : 'create';
             const body = new URLSearchParams();
             body.append('action', action);
             if (this.form.id) body.append('id', this.form.id);
             body.append('fecha', this.form.fecha);
             body.append('indice', this.form.indice);
-            body.append('activo', this.form.activo ? 1 : 0);
+//    console.log('Datos enviados:', Object.fromEntries(body));
+//    console.log('Form original:', this.form);            
 
             fetch('modules/inpc/actions.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: body.toString()
-            }).then(async r => {
-                // Try to parse JSON response; if it's not JSON (server did a redirect), reload the page
+            }).then(async r => {                
                 try {
                     const data = await r.json();
                     if (data.success) {
@@ -464,7 +446,6 @@ function inpcController() {
                         alert(data.message || 'Error al guardar.');
                     }
                 } catch (err) {
-                    // Response not JSON (probably redirect), reload to reflect server-side redirect
                     location.reload();
                 }
             }).catch(err => {

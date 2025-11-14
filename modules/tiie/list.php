@@ -17,8 +17,7 @@ $permissions = new Permissions();
 
 $userId = $session->getUserId();
 $isAdmin = $session->isAdmin();
-//var_dump('session->getUserId', $session->getUserId());
-// var_dump('$_SESSION keys', array_keys($_SESSION));
+
 $canView = $isAdmin 
     || $permissions->hasPermission($userId, 'tiie', 'lire')
     || $session->hasPermission('catalogos', 'lire', 'tiie');
@@ -34,9 +33,6 @@ $canEdit = $isAdmin
 $canDelete = $isAdmin 
     || $permissions->hasPermission($userId, 'tiie', 'supprimer')
     || $session->hasPermission('catalogos', 'supprimer', 'tiie');
-
-// var_dump($session->hasPermission('catalogos', 'lire', 'tiie')); // debería ser true
-// var_dump($session->hasPermission('tiie', 'lire')); // si el módulo TIIE también se chequea así
 
 
 if (!$canView) {
@@ -287,7 +283,7 @@ if (!empty($registros)) {
 
                 <div class="flex items-center gap-3">
                     <label class="inline-flex items-center gap-2">
-                        <input type="checkbox" x-model="form.activo" class="form-checkbox h-4 w-4">
+                        <input type="checkbox" x-model="form.activo" checked  class="form-checkbox h-4 w-4">
                         <span class="text-sm text-gray-600">Registro Activo</span>
                     </label>
                 </div>
@@ -420,10 +416,11 @@ function tiieController() {
         },
 
         openEditModal(id) {
-            // Fetch registro desde backend
+            console.log('Solicitando ID:', id);
             fetch(`modules/tiie/actions.php?action=get&id=${id}`)
                 .then(r => r.json())
                 .then(resp => {
+                    console.log('Respuesta recibida:', resp);
                     if (resp.success) {
                         this.form.id = resp.data.id;
                         this.form.fecha = resp.data.fecha;
@@ -446,7 +443,6 @@ function tiieController() {
         },
 
         submitForm() {
-            // Decide action: create or update
             const action = this.form.id ? 'update' : 'create';
             const body = new URLSearchParams();
             body.append('action', action);
@@ -454,13 +450,14 @@ function tiieController() {
             body.append('fecha', this.form.fecha);
             body.append('dato', this.form.dato);
             body.append('activo', this.form.activo ? 1 : 0);
+    console.log('Datos enviados:', Object.fromEntries(body));
+    console.log('Form original:', this.form);            
 
             fetch('modules/tiie/actions.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: body.toString()
-            }).then(async r => {
-                // Try to parse JSON response; if it's not JSON (server did a redirect), reload the page
+            }).then(async r => {                
                 try {
                     const data = await r.json();
                     if (data.success) {
@@ -468,8 +465,7 @@ function tiieController() {
                     } else {
                         alert(data.message || 'Error al guardar.');
                     }
-                } catch (err) {
-                    // Response not JSON (probably redirect), reload to reflect server-side redirect
+                } catch (err) {                    
                     location.reload();
                 }
             }).catch(err => {

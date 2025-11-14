@@ -5,15 +5,18 @@ require_once '../../includes/Session.php';
 require_once '../../includes/Permissions.php';
 
 $db = Database::getInstance()->getConnection();
-$action = $_POST['action'] ?? '';
+$action = $_POST['action'] ?? $_GET['action'] ?? '';
+$userId = $_SESSION['user_id'] ?? 0;
 
 
 $permissions = new Permissions();
-$canView = $permissions->hasPermission('inpc', 'lire');
-$canCreate = $permissions->hasPermission('inpc', 'creer');
-$canEdit = $permissions->hasPermission('inpc', 'modifier');
-$canDelete = $permissions->hasPermission('inpc', 'supprimer');
-$isAdmin = $permissions->isAdmin();
+$canView = $permissions->hasPermission($userId, 'inpc', 'lire');
+$canCreate = $permissions->hasPermission($userId, 'inpc', 'creer');
+$canEdit = $permissions->hasPermission($userId, 'inpc', 'modifier');
+$canDelete = $permissions->hasPermission($userId, 'inpc', 'supprimer');
+
+$session = new Session();
+$isAdmin = $session->isAdmin();
 
 $response = ['success' => false, 'message' => ''];
 
@@ -25,22 +28,29 @@ switch ($action) {
             break;
         }
         
+        
         $fecha = $_POST['fecha'] ?? '';
         $indice = $_POST['indice'] ?? 0;
-        $activo = isset($_POST['activo']) ? 1 : 0;
         $usuario = $_SESSION['username'] ?? 'sistema';
-                
+        $hora_insercion = date('H:i:s');                
         
-        try {
-            $stmt = $db->prepare("INSERT INTO t_inpc (fecha, indice, fecha_captura, hora_captura, usuausuario) 
-                                  VALUES (?, ?, CURRENT_DATE, CURRENT_TIME, ?)");
+        try {                    
+            $stmtCheck = $db->prepare("SELECT COUNT(*) as total FROM t_inpc WHERE DATE(fecha) = DATE(?)");
+            $stmtCheck->execute([$fecha]);
+            $existe = $stmtCheck->fetch(PDO::FETCH_ASSOC);
             
-            file_put_contents($debugFile, "Ejecutando INSERT...\n", FILE_APPEND);
-            
+            if ($existe['total'] > 0) {
+                $response['success'] = false;
+                $response['message'] = 'Ya existe un registro con esta fecha';
+                break;
+            }
+
+            $stmt = $db->prepare("INSERT INTO t_inpc (fecha, indice, fecha_captura, hora_captura, usuario) 
+                                  VALUES (?, ?, NOW(), ?, ?)");                        
             $stmt->execute([
                 $fecha, 
-                $indice, 
-                $activo,
+                $indice,
+                $hora_insercion, 
                 $usuario
             ]);                        
             
@@ -60,11 +70,22 @@ switch ($action) {
         $id = $_POST['id'] ?? 0;
         $fecha = $_POST['fecha'] ?? '';
         $indice = $_POST['indice'] ?? 0;
-        $activo = isset($_POST['activo']) ? 1 : 0;
         
-        try {
-            $stmt = $db->prepare("UPDATE t_inpc SET fecha = ?, indice = ?, activo = ? WHERE id = ?");
-            $stmt->execute([$fecha, $indice, $activo, $id]);
+        try {        
+        $stmtCheck = $db->prepare("SELECT COUNT(*) as total 
+                                   FROM t_inpc 
+                                   WHERE DATE(fecha) = DATE(?) 
+                                   AND id != ?");
+        $stmtCheck->execute([$fecha, $id]);
+        $existe = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+        
+        if ($existe['total'] > 0) {
+            $response['success'] = false;
+            $response['message'] = 'Ya existe otro registro con esta fecha';
+            break;
+        }
+            $stmt = $db->prepare("UPDATE t_inpc SET fecha = ?, indice = ? WHERE id = ?");
+            $stmt->execute([$fecha, $indice,  $id]);
             
             $response['success'] = true;
             $response['message'] = 'Registro actualizado';
@@ -83,7 +104,7 @@ switch ($action) {
         $id = $_POST['id'] ?? 0;
         
         try {
-            $stmt = $db->prepare("UPDATE t_inpc SET activo = false WHERE id = ?");
+            $stmt = $db->prepare("DELETE FROM t_inpc WHERE id = ?");
             $stmt->execute([$id]);
             
             $response['success'] = true;
@@ -104,6 +125,11 @@ switch ($action) {
             $stmt->execute([$id]);
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
             
+            if (isset($data['fecha'])) {
+            
+                $data['fecha'] = date('Y-m-d', strtotime($data['fecha']));
+            }
+            
             if ($data) {
                 $response['success'] = true;
                 $response['data'] = $data;
@@ -120,4 +146,3 @@ switch ($action) {
 }
 header('Content-Type: application/json');
 echo json_encode($response);
-?>

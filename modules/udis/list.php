@@ -17,26 +17,25 @@ $permissions = new Permissions();
 
 $userId = $session->getUserId();
 $isAdmin = $session->isAdmin();
-//var_dump('session->getUserId', $session->getUserId());
-// var_dump('$_SESSION keys', array_keys($_SESSION));
+
 $canView = $isAdmin 
-    || $permissions->hasPermission($userId, 'tiie', 'lire')
-    || $session->hasPermission('catalogos', 'lire', 'tiie');
+    || $permissions->hasPermission($userId, 'udis', 'lire')
+    || $session->hasPermission('catalogos', 'lire', 'udis');
 
 $canCreate = $isAdmin 
-    || $permissions->hasPermission($userId, 'tiie', 'creer')
-    || $session->hasPermission('catalogos', 'creer', 'tiie');
+    || $permissions->hasPermission($userId, 'udis', 'creer')
+    || $session->hasPermission('catalogos', 'creer', 'udis');
 
 $canEdit = $isAdmin 
-    || $permissions->hasPermission($userId, 'tiie', 'modifier')
-    || $session->hasPermission('catalogos', 'modifier', 'tiie');
+    || $permissions->hasPermission($userId, 'udis', 'modifier')
+    || $session->hasPermission('catalogos', 'modifier', 'udis');
 
 $canDelete = $isAdmin 
-    || $permissions->hasPermission($userId, 'tiie', 'supprimer')
-    || $session->hasPermission('catalogos', 'supprimer', 'tiie');
+    || $permissions->hasPermission($userId, 'udis', 'supprimer')
+    || $session->hasPermission('catalogos', 'supprimer', 'udis');
 
-// var_dump($session->hasPermission('catalogos', 'lire', 'tiie')); // debería ser true
-// var_dump($session->hasPermission('tiie', 'lire')); // si el módulo TIIE también se chequea así
+// var_dump($session->hasPermission('catalogos', 'creer', 'udis')); // debería ser true
+// var_dump($session->hasPermission('udis', 'lire')); // si el módulo udis también se chequea así
 
 
 if (!$canView) {
@@ -48,7 +47,7 @@ $fecha_inicio = $_GET['fecha_inicio'] ?? date('Y-m-01');
 $fecha_fin = $_GET['fecha_fin'] ?? date('Y-m-t');
 
 try {
-    $query = "SELECT * FROM t_tiie 
+    $query = "SELECT * FROM t_udis 
               WHERE fecha BETWEEN ? AND ? 
               ORDER BY fecha DESC";
     $stmt = $db->prepare($query);
@@ -75,11 +74,11 @@ if (!empty($registros)) {
     $min = null;
     $activos = 0;
     foreach ($registros as $r) {
-        $val = floatval($r['dato']);
+        $val = floatval($r['valor']);
         $sum += $val;
         if ($max === null || $val > $max) $max = $val;
         if ($min === null || $val < $min) $min = $val;
-        if (!empty($r['activo'])) $activos++;
+        if (!empty($r['id'])) $activos++;
     }
     $stats['promedio'] = $sum / count($registros);
     $stats['max'] = $max;
@@ -92,13 +91,13 @@ if (!empty($registros)) {
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.0/dist/tailwind.min.css" rel="stylesheet">
 <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-<div x-data="tiieController()" x-init="init()" class="p-6 space-y-6">
+<div x-data="udisController()" x-init="init()" class="p-6 space-y-6">
 
     <!-- Header -->
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-semibold text-gray-800"><i class="fas fa-percentage mr-2"></i> Gestión de TIIE</h1>
-            <p class="text-sm text-gray-500">Tasas de Interés Interbancarias de Equilibrio</p>
+            <h1 class="text-2xl font-semibold text-gray-800"><i class="fas fa-percentage mr-2"></i> Gestión de UDIS</h1>
+            <p class="text-sm text-gray-500">Unidades de Inversión</p>
         </div>
         <?php if ($canCreate): ?>
         <button @click="openCreateModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
@@ -173,7 +172,7 @@ if (!empty($registros)) {
     <!-- Filtros -->
     <div class="bg-white rounded-lg shadow p-4">
         <form method="GET" action="" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-            <input type="hidden" name="mod" value="tiie">
+            <input type="hidden" name="mod" value="udis">
             <div>
                 <label class="block text-sm text-gray-600">Fecha inicio</label>
                 <input type="date" name="fecha_inicio" value="<?= htmlspecialchars($fecha_inicio); ?>" class="mt-1 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -184,7 +183,7 @@ if (!empty($registros)) {
             </div>
             <div class="flex gap-2">
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Filtrar</button>
-                <a href="catalogos.php?mod=tiie" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Limpiar</a>
+                <a href="catalogos.php?mod=udis" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Limpiar</a>
             </div>
         </form>
     </div>
@@ -205,12 +204,11 @@ if (!empty($registros)) {
                             <div class="flex items-center gap-2">Fecha <span x-show="sort.column === 'fecha'"> <template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
                         </th>
 
-                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('dato')">
-                            <div class="flex items-center justify-end gap-2">Tasa <span x-show="sort.column === 'dato'"> <template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
+                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('valor')">
+                            <div class="flex items-center justify-end gap-2">Tasa <span x-show="sort.column === 'valor'"> <template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
                         </th>
 
                         <?php if ($isAdmin): ?>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registro</th>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
@@ -225,18 +223,11 @@ if (!empty($registros)) {
                         <?php endif; ?>
 
                         <td class="px-4 py-3 text-sm text-gray-700"><?= date('d/m/Y', strtotime($row['fecha'])); ?></td>
-                        <td class="px-4 py-3 text-sm text-gray-700 text-right"><?= number_format($row['dato'], 4); ?></td>
+                        <td class="px-4 py-3 text-sm text-gray-700 text-right"><?= number_format($row['valor'], 4); ?></td>
 
                         <?php if ($isAdmin): ?>
-                        <td class="px-4 py-3 text-sm">
-                            <?php if ($row['activo']): ?>
-                                <span class="inline-flex items-center px-2 py-1 rounded text-xs bg-green-100 text-green-800">Activo</span>
-                            <?php else: ?>
-                                <span class="inline-flex items-center px-2 py-1 rounded text-xs bg-red-100 text-red-800">Inactivo</span>
-                            <?php endif; ?>
-                        </td>
-                        <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($row['usuausuario'] ?? $row['usuario'] ?? ''); ?></td>
-                        <td class="px-4 py-3 text-sm text-gray-700"><?= date('d/m/Y', strtotime($row['fecha_insercion'])) . ' ' . htmlspecialchars($row['hora_insercion']); ?></td>
+                        <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($row['usuario'] ?? $row['usuario'] ?? ''); ?></td>
+                        <td class="px-4 py-3 text-sm text-gray-700"><?= date('d/m/Y', strtotime($row['fecha_captura'])) . ' ' . htmlspecialchars($row['hora_captura']); ?></td>
                         <td class="px-4 py-3 text-center">
                             <div class="inline-flex gap-2">
                                 <?php if ($canEdit): ?>
@@ -281,16 +272,10 @@ if (!empty($registros)) {
 
                 <div>
                     <label class="block text-sm text-gray-600">Tasa</label>
-                    <input type="number" step="0.0001" min="0" max="100" x-model="form.dato" required class="mt-1 w-full px-3 py-2 border rounded-lg">
+                    <input type="number" step="0.0001" min="0" max="100" x-model="form.valor" required class="mt-1 w-full px-3 py-2 border rounded-lg">
                     <p class="text-xs text-gray-500 mt-1">Ingrese el valor</p>
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <label class="inline-flex items-center gap-2">
-                        <input type="checkbox" x-model="form.activo" class="form-checkbox h-4 w-4">
-                        <span class="text-sm text-gray-600">Registro Activo</span>
-                    </label>
-                </div>
 
                 <div class="flex justify-end gap-2">
                     <button type="button" @click="closeModal()" class="px-4 py-2 bg-gray-200 rounded">Cancelar</button>
@@ -303,7 +288,7 @@ if (!empty($registros)) {
 </div>
 
 <script>
-function tiieController() {
+function udisController() {
     return {
         // Datos iniciales (inyectar registros desde PHP para ordenamiento client-side)
         registros: <?= json_encode(array_map(function($r){
@@ -311,18 +296,18 @@ function tiieController() {
             return [
                 'id' => $r['id'],
                 'fecha' => $r['fecha'],
-                'dato' => floatval($r['dato']),
-                'activo' => !empty($r['activo']) ? 1 : 0,
-                'usuario' => $r['usuausuario'] ?? $r['usuario'] ?? '',
-                'fecha_insercion' => $r['fecha_insercion'],
-                'hora_insercion' => $r['hora_insercion'],
+                'valor' => floatval($r['valor']),
+//                'activo' => !empty($r['activo']) ? 1 : 0,
+                'usuario' => $r['usuario'] ?? $r['usuario'] ?? '',
+                'fecha_captura' => $r['fecha_captura'],
+                'hora_captura' => $r['hora_captura'],
             ];
         }, $registros)); ?>,
 
         sort: { column: 'fecha', desc: true },
 
         modal: { open: false, title: '', actionText: '' },
-        form: { id: '', fecha: '', dato: '', activo: 1 },
+        form: { id: '', fecha: '', valor: '' },
 
         init() {
             // Render inicial (ya están los rows generados por PHP en DOM, pero mantenemos registros para resort)
@@ -378,15 +363,15 @@ function tiieController() {
                 tdFecha.textContent = dd;
                 tr.appendChild(tdFecha);
 
-                const tdDato = document.createElement('td');
-                tdDato.className = 'px-4 py-3 text-sm text-gray-700 text-right';
-                tdDato.textContent = Number(r.dato).toFixed(4);
-                tr.appendChild(tdDato);
+                const tdValor = document.createElement('td');
+                tdValor.className = 'px-4 py-3 text-sm text-gray-700 text-right';
+                tdValor.textContent = Number(r.valor).toFixed(4);
+                tr.appendChild(tdValor);
 
                 if (isAdmin) {
                     const tdEstado = document.createElement('td');
                     tdEstado.className = 'px-4 py-3 text-sm';
-                    tdEstado.innerHTML = r.activo ? '<span class="inline-flex items-center px-2 py-1 rounded text-xs bg-green-100 text-green-800">Activo</span>' : '<span class="inline-flex items-center px-2 py-1 rounded text-xs bg-red-100 text-red-800">Inactivo</span>';
+//                    tdEstado.innerHTML = r.activo ? '<span class="inline-flex items-center px-2 py-1 rounded text-xs bg-green-100 text-green-800">Activo</span>' : '<span class="inline-flex items-center px-2 py-1 rounded text-xs bg-red-100 text-red-800">Inactivo</span>';
                     tr.appendChild(tdEstado);
 
                     const tdUsuario = document.createElement('td');
@@ -396,7 +381,7 @@ function tiieController() {
 
                     const tdRegistro = document.createElement('td');
                     tdRegistro.className = 'px-4 py-3 text-sm text-gray-700';
-                    tdRegistro.textContent = r.fecha_insercion + ' ' + (r.hora_insercion || '');
+                    tdRegistro.textContent = r.fecha_captura + ' ' + (r.hora_captura || '');
                     tr.appendChild(tdRegistro);
 
                     const tdAcc = document.createElement('td');
@@ -414,23 +399,23 @@ function tiieController() {
 
         openCreateModal() {
             this.modal.open = true;
-            this.modal.title = 'Nueva Tasa TIIE';
+            this.modal.title = 'Nuevo Valor udi';
             this.modal.actionText = 'Guardar';
-            this.form = { id: '', fecha: '', dato: '', activo: 1 };
+            this.form = { id: '', fecha: '', valor: ''};
         },
 
         openEditModal(id) {
-            // Fetch registro desde backend
-            fetch(`modules/tiie/actions.php?action=get&id=${id}`)
+            console.log('Solicitando ID:', id);
+            fetch(`modules/udis/actions.php?action=get&id=${id}`)
                 .then(r => r.json())
                 .then(resp => {
+                    console.log('Respuesta recibida:', resp); 
                     if (resp.success) {
                         this.form.id = resp.data.id;
                         this.form.fecha = resp.data.fecha;
-                        this.form.dato = resp.data.dato;
-                        this.form.activo = resp.data.activo == 1 ? 1 : 0;
+                        this.form.valor = resp.data.valor;
                         this.modal.open = true;
-                        this.modal.title = 'Editar Tasa TIIE';
+                        this.modal.title = 'Editar Tasa udis';
                         this.modal.actionText = 'Actualizar';
                     } else {
                         alert(resp.message || 'No se pudo obtener el registro.');
@@ -446,44 +431,48 @@ function tiieController() {
         },
 
         submitForm() {
-            // Decide action: create or update
-            const action = this.form.id ? 'update' : 'create';
-            const body = new URLSearchParams();
-            body.append('action', action);
-            if (this.form.id) body.append('id', this.form.id);
-            body.append('fecha', this.form.fecha);
-            body.append('dato', this.form.dato);
-            body.append('activo', this.form.activo ? 1 : 0);
+                const action = this.form.id ? 'update' : 'create';
+                const body = new URLSearchParams();
+                body.append('action', action);
+                if (this.form.id) body.append('id', this.form.id);
+                body.append('fecha', this.form.fecha);
+                body.append('valor', this.form.valor);
 
-            fetch('modules/tiie/actions.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: body.toString()
-            }).then(async r => {
-                // Try to parse JSON response; if it's not JSON (server did a redirect), reload the page
-                try {
-                    const data = await r.json();
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert(data.message || 'Error al guardar.');
+                fetch('modules/udis/actions.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: body.toString()
+                }).then(async r => {
+                    console.log('Status:', r.status);
+                    const text = await r.text();
+                    console.log('Respuesta raw:', text);
+                    
+                    try {
+                        const data = JSON.parse(text);
+                        console.log('Respuesta parseada:', data);
+                        
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert(data.message || 'Error al guardar.');
+                        }
+                    } catch (err) {
+                        console.error('Error al parsear respuesta:', err);
+                        console.log('Texto recibido:', text);
+                        alert('Error al procesar respuesta del servidor'+ text.substring(0, 500));
                     }
-                } catch (err) {
-                    // Response not JSON (probably redirect), reload to reflect server-side redirect
-                    location.reload();
-                }
-            }).catch(err => {
-                console.error(err);
-                alert('Error en la petición.');
-            });
-        },
+                }).catch(err => {
+                    console.error('Error en fetch:', err);
+                    alert('Error en la petición.');
+                });
+            },
 
         confirmDelete(id) {
             if (!confirm('¿Está seguro de eliminar este registro?')) return;
             const body = new URLSearchParams();
             body.append('action', 'delete');
             body.append('id', id);
-            fetch('modules/tiie/actions.php', {
+            fetch('modules/udis/actions.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: body.toString()

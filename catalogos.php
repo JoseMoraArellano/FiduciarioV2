@@ -118,7 +118,7 @@ $modulesMetadata = [
         'udis' => [
         'title' => 'Udis',
         'icon' => 'fa-percentage',
-        'description' => 'Indice de precios al consumidor',
+        'description' => 'Unidades de Inversión',
         'path' => 'modules/udis/'
     ]
 
