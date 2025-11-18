@@ -141,14 +141,14 @@ try {
                 </button>
             </div>
             </form>
-            
-            <!-- Loading State -->
+        
+            <!-- 
             <div id="loading" class="hidden mt-6 text-center py-4">
                 <div class="spinner mx-auto"></div>
                 <p class="mt-3 text-sm text-gray-600">Procesando solicitud...</p>
             </div>
         </div>
-        
+            Loading State -->
         <!-- Footer Info -->
         <div class="mt-6 text-center">
             <p class="text-xs text-gray-500">Sistema de gestión de tokens API v1.0</p>

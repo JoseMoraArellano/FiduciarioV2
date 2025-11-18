@@ -1,0 +1,46 @@
+[2025-11-18 19:31:15] [INFO] Iniciando sincronización de TIIE
+[2025-11-18 19:31:15] [INFO] Consultando TIIE oportuno...
+[2025-11-18 19:31:16] [ERROR] Error en sincronizarTiie: SQLSTATE[42703]: Undefined column: 7 ERROR:  column "usuario" of relation "t_tiie" does not exist
+LINE 2: ...cha, dato, activo, fecha_insercion, hora_insercion, usuario)
+                                                               ^
+[2025-11-18 19:31:29] [INFO] Iniciando sincronización de Tipo de Cambio
+[2025-11-18 19:31:29] [INFO] Consultando Tipo de Cambio oportuno...
+[2025-11-18 19:31:30] [INFO] ✅ TDC insertado: Fecha=14/11/2025, Tasa=18.3102
+[2025-11-18 19:31:34] [INFO] Iniciando sincronización de INPC
+[2025-11-18 19:31:34] [INFO] Consultando INPC oportuno...
+[2025-11-18 19:31:34] [INFO] ✅ INPC insertado: Fecha=01/10/2025, Índice=141.630370924
+[2025-11-18 19:31:50] [INFO] Iniciando sincronización de CPP
+[2025-11-18 19:31:50] [INFO] Consultando CPP oportuno...
+[2025-11-18 19:31:50] [INFO] ✅ CPP insertado: Fecha=01/10/2025, Tasa=4.5
+[2025-11-18 19:31:56] [INFO] Iniciando sincronización de UDIS
+[2025-11-18 19:31:56] [INFO] Consultando UDIS del 2025-11-11 al 2025-11-18
+[2025-11-18 19:31:56] [INFO] ✅ UDIS insertado: Fecha=18/11/2025, Valor=8.593045
+[2025-11-18 19:32:20] [INFO] Iniciando sincronización de TIIE
+[2025-11-18 19:32:20] [INFO] Consultando TIIE oportuno...
+[2025-11-18 19:32:20] [ERROR] Error en sincronizarTiie: SQLSTATE[42703]: Undefined column: 7 ERROR:  column "usuario" of relation "t_tiie" does not exist
+LINE 2: ...cha, dato, activo, fecha_insercion, hora_insercion, usuario)
+                                                               ^
+[2025-11-18 19:58:14] [INFO] Iniciando sincronización de Tipo de Cambio
+[2025-11-18 19:58:14] [INFO] Consultando Tipo de Cambio oportuno...
+[2025-11-18 19:58:14] [INFO] TDC para fecha 2025-11-14 ya existe
+[2025-11-18 20:10:51] [INFO] Iniciando sincronización de Tipo de Cambio
+[2025-11-18 20:10:51] [INFO] Consultando Tipo de Cambio oportuno...
+[2025-11-18 20:10:51] [INFO] TDC para fecha 2025-11-14 ya existe
+[2025-11-18 21:55:09] [INFO] Iniciando sincronización de TIIE
+[2025-11-18 21:55:09] [INFO] Consultando TIIE oportuno...
+[2025-11-18 21:55:09] [ERROR] Error en sincronizarTiie: SQLSTATE[42703]: Undefined column: 7 ERROR:  column "usuario" of relation "t_tiie" does not exist
+LINE 2: ...cha, dato, activo, fecha_insercion, hora_insercion, usuario)
+                                                               ^
+[2025-11-18 21:55:17] [INFO] Iniciando sincronización de TIIE
+[2025-11-18 21:55:17] [INFO] Consultando TIIE oportuno...
+[2025-11-18 21:55:17] [ERROR] Error en sincronizarTiie: SQLSTATE[42703]: Undefined column: 7 ERROR:  column "usuario" of relation "t_tiie" does not exist
+LINE 2: ...cha, dato, activo, fecha_insercion, hora_insercion, usuario)
+                                                               ^
+[2025-11-18 21:55:54] [INFO] Iniciando sincronización de TIIE
+[2025-11-18 21:55:54] [INFO] Consultando TIIE oportuno...
+[2025-11-18 21:55:54] [ERROR] Error en sincronizarTiie: SQLSTATE[42703]: Undefined column: 7 ERROR:  column "usuario" of relation "t_tiie" does not exist
+LINE 2: ...cha, dato, activo, fecha_insercion, hora_insercion, usuario)
+                                                               ^
+[2025-11-18 21:56:42] [INFO] Iniciando sincronización de TIIE
+[2025-11-18 21:56:42] [INFO] Consultando TIIE oportuno...
+[2025-11-18 21:56:42] [INFO] ✅ TIIE insertado: Fecha=19/11/2025, Dato=7.5198

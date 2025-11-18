@@ -101,6 +101,12 @@ if (!empty($registros)) {
             <i class="fas fa-plus"></i> Nueva Tasa
         </button>
         <?php endif; ?>
+        <?php if ($isAdmin): ?>
+        <button @click=" " class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition">
+            <i class="fa-solid fa-angles-down"></i> Sincronizar
+        </button>
+        <?php endif; ?>
+        
     </div>
 
     <!-- Estadísticas -->
