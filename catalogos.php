@@ -15,6 +15,7 @@ require_once 'includes/Permissions.php';
 require_once 'includes/Auth.php';
 require_once 'includes/Sidebar.php';
 
+
 // Iniciar sesión
 $session = new Session();
 
@@ -27,38 +28,39 @@ if (!$session->isLoggedIn()) {
 // Obtener datos del usuario
 $userData = $session->getUserData();
 $userId = $session->getUserId();
- $isAdmin = $session->isAdmin();
+$isAdmin = $session->isAdmin();
 //$isAdmin= true;
+//$userPermissions = $userData['permissions'] ?? [];
 $userPermissions = $userData['permissions'] ?? [];
+
+// Crear instancia del Sidebar (MOVER AQUÍ desde la línea 120)
+$sidebar = new Sidebar($userPermissions, $userId, 'catalogos.php', $isAdmin);
 
 // Obtener módulo solicitado
 $mod = $_GET['mod'] ?? '';
 $action = $_GET['action'] ?? 'list';
 
-// Validar módulo
-$allowedModules = [
-    'honorarios',
-    'patrimonios',
-    'tiie',
-    'inpc',
-    'udis',
-    'tdc',
-    'cpp',
-    'servicios',
-    'usuarios',
-    'grupos',
-    'clientes',
-    'configuracion',
-    'variables'
-];
+// Validar que el módulo exista en t_menu
+$moduleData = $sidebar->getModuleByModParam($mod);
+// Obtener módulo solicitado
+//$mod = $_GET['mod'] ?? '';
+//$action = $_GET['action'] ?? 'list';
 
-if (!in_array($mod, $allowedModules)) {
+// Validar que el módulo exista en t_menu
+// $moduleData = $sidebar->getModuleByModParam($mod);
+
+if (!$moduleData) {
+    // Módulo no existe o está inactivo
     header('Location: dashboard.php');
     exit;
 }
 
 // Verificar permiso de lectura del módulo
-if (!$isAdmin && !$session->hasPermission('catalogos', 'lire', $mod)) {
+if (!$isAdmin && !$session->hasPermission(
+    $moduleData['modulo'],
+    $moduleData['permiso_requerido'],
+    $moduleData['subpermiso_requerido']
+)) {
     die('
         <div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;">
             <div style="text-align:center;">
@@ -71,77 +73,18 @@ if (!$isAdmin && !$session->hasPermission('catalogos', 'lire', $mod)) {
     ');
 }
 
+$projectRoot = __DIR__ . '/';
+
 // Definir metadata de módulos
-$modulesMetadata = [
-    'usuarios' => [
-        'title' => 'Gestión de Usuarios',
-        'icon' => 'fa-users-cog',
-        'description' => 'Administra usuarios del sistema, permisos y grupos',
-        'path' => 'modules/usuarios/'
-    ],
-    'grupos' => [
-        'title' => 'Gestión de Grupos',
-        'icon' => 'fa-users-cog',
-        'description' => 'Administra grupos de usuarios y sus permisos',
-        'path' => 'modules/grupos/'
-    ],
-    'honorarios' => [
-        'title' => 'Honorarios',
-        'icon' => 'fa-money-bill-wave',
-        'description' => 'Catálogo de honorarios',
-        'path' => 'modules/honorarios/'
-    ],
-    'clientes' => [
-        'title' => 'Clientes',
-        'icon' => 'fa-users',
-        'description' => 'Administra clientes y sus datos',
-        'path' => 'modules/clientes/'
-    ],
-    'configuracion' => [
-        'title' => 'Configuración',
-        'icon' => 'fa-cogs',
-        'description' => 'Ajustes y configuración del sistema',
-        'path' => 'modules/configuracion/'
-    ],
-    'tiie' => [
-        'title' => 'TIIE',
-        'icon' => 'fa-percentage',
-        'description' => 'Gestión de Tasas de Interés Interbancarias de Equilibrio',
-        'path' => 'modules/tiie/'
-    ],
-    'inpc' => [
-        'title' => 'INPC',
-        'icon' => 'fa-percentage',
-        'description' => 'Indice de precios al consumidor',
-        'path' => 'modules/inpc/'
-    ],
-    'udis' => [
-        'title' => 'UDIS',
-        'icon' => 'fa-percentage',
-        'description' => 'Unidad de Inversión',
-        'path' => 'modules/udis/'
-    ],
-    'tdc' => [
-        'title' => 'TDC',
-        'icon' => 'fa-exchange-alt',
-        'description' => 'Tasas de Cambio',
-        'path' => 'modules/tdc/'
-    ],
-    'cpp' => [
-        'title' => 'CPP',
-        'icon' => 'fa-file-invoice-dollar',
-        'description' => 'Catálogo de CPP',
-        'path' => 'modules/cpp/'
-    ],
+// Título, ícono y descripción para cada módulo
 
-    // ... otros módulos (agregar según necesites)
+// Construir metadata del módulo desde la BD
+$currentModule = [
+    'title' => $moduleData['label'],
+    'icon' => $moduleData['icon'],
+    'description' => 'Gestión de ' . $moduleData['label'],
+    'path' => 'modules/' . $mod . '/'
 ];
-
-$currentModule = $modulesMetadata[$mod] ?? null;
-
-if (!$currentModule) {
-    die('Módulo no configurado');
-}
 
 // Cargar el archivo del módulo según la acción
 $modulePath = $currentModule['path'];
@@ -202,7 +145,7 @@ if (!file_exists($fullPath)) {
 }
 
 // Crear instancia del Sidebar
-$sidebar = new Sidebar($userPermissions, $userId, 'catalogos.php', $isAdmin);
+// $sidebar = new Sidebar($userPermissions, $userId, 'catalogos.php', $isAdmin);
 
 ?>
 <!DOCTYPE html>

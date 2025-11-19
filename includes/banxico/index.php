@@ -1,11 +1,29 @@
 <?php
-session_start();
 
-// Si necesitas verificar autenticación, hazlo aquí
-// if (!isset($_SESSION['user_id'])) {
-//     header('Location: /login.php');
-//     exit;
-// }
+require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
+require_once $_SERVER['DOCUMENT_ROOT'] .'/includes/Database.php';
+require_once $_SERVER['DOCUMENT_ROOT'] .'/includes/Session.php';
+require_once $_SERVER['DOCUMENT_ROOT'] .'/includes/Permissions.php';
+require_once $_SERVER['DOCUMENT_ROOT'] .'/includes/Auth.php';
+require_once $_SERVER['DOCUMENT_ROOT'] .'/includes/Sidebar.php';
+
+// Iniciar sesión
+$session = new Session();
+
+// Verificar autenticación
+if (!$session->isLoggedIn()) {
+    header('Location: login.php');
+    exit;
+}
+
+$userData = $session->getUserData();
+$userId = $session->getUserId();
+$isAdmin = $session->isAdmin();
+$userPermissions = $userData['permissions'] ?? [];
+$currentFile = basename(__FILE__);
+$sidebar = new Sidebar($userPermissions, $userId, $currentFile, $isAdmin);
+//$sidebar = new Sidebar($userPermissions, $userId, 'dashboard.php', $isAdmin);
+$menuStats = $sidebar->getMenuStats();
 ?>
 
 <!DOCTYPE html>
@@ -13,19 +31,17 @@ session_start();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Sincronización Banxico</title>
+    <link rel="icon" type="image/x-icon" href="../../img/afiducialogo.png">
+    <title>Sincronización Banxico</title>
     
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
-    <!-- Tailwind CSS (opcional, ya tienes Bootstrap) -->
-    <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
         .loader {
@@ -63,49 +79,121 @@ session_start();
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
+        
+        /* Scrollbar personalizado */
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #374151;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #6b7280;
+            border-radius: 3px;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-100">
+
+<!-- Layout principal con sidebar -->
+<div class="flex h-screen">
+    <!-- Sidebar lateral -->
+    <?php echo $sidebar->render($userData); ?>
     
-<div class="container-fluid py-4" x-data="banxicoApp()">
-    
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col">
-            <h1 class="h2 fw-bold text-primary">
-                <i class="fas fa-chart-line me-2"></i>
-                Panel de Sincronización Banxico
-            </h1>
-            <p class="text-muted">Gestión de indicadores financieros de México</p>
-        </div>
+    <!-- Contenido principal -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Header superior -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="flex items-center justify-between px-6 py-4">
+  <div class="flex items-center gap-4">
+    <a href="../../dashboard.php" class="text-gray-600 hover:text-gray-800 transition">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <div>
+        <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <i class="fas fa-chart-line text-blue-600"></i>
+            Panel de Sincronización Manual a Banxico
+        </h1>
+        <p class="text-sm text-gray-600">Gestión de indicadores financieros de México</p>
     </div>
-    
-    <!-- Alertas -->
-    <div class="row mb-3" x-show="alerta.mostrar" x-transition>
-        <div class="col">
-            <div :class="`alert alert-${alerta.tipo} alert-dismissible fade show`" role="alert">
-                <strong x-text="alerta.titulo"></strong> <span x-text="alerta.mensaje"></span>
-                <button type="button" class="btn-close" @click="alerta.mostrar = false"></button>
+</div>
+                
+                <!-- Información de usuario en header -->
+                            <nav class="flex items-center text-sm text-gray-500">
+                                <a href="../../dashboard.php" class="hover:text-gray-700">Dashboard</a>
+                                <span class="mx-2">/</span>
+                                <a href="/catalogos.php?<?= htmlspecialchars($userData['name'] ?? 'Usuario') ?>" class="hover:text-gray-700">                                    
+                                </a>
+                                <span class="text-gray-700 capitalize">
+                                <a href="#">API Banxico</a>
+                                </span>
+                                <span class="mx-2">/</span>
+                                <span class="text-gray-700 capitalize">
+                                <i class="fas fa-user mr-1"></i>    
+                                <?= htmlspecialchars($userData['name'] ?? 'Usuario') ?>
+                                    
+                                </span>
+                            </nav>
             </div>
-        </div>
-    </div>
-    
-    <!-- Controles principales -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-sync me-2"></i>
-                        Sincronización de Datos Actuales
-                    </h5>
+        </header>
+
+        <!-- Contenido de la aplicación -->
+        <main class="flex-1 overflow-y-auto p-6" x-data="banxicoApp()">
+            
+            <!-- Alertas -->
+            <div x-show="alerta.mostrar" x-transition class="mb-6">
+                <div :class="`rounded-md p-4 ${
+                    alerta.tipo === 'success' ? 'bg-green-50 border border-green-200' :
+                    alerta.tipo === 'danger' ? 'bg-red-50 border border-red-200' :
+                    alerta.tipo === 'warning' ? 'bg-yellow-50 border border-yellow-200' :
+                    'bg-blue-50 border border-blue-200'
+                }`">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i :class="`${
+                                alerta.tipo === 'success' ? 'fas fa-check-circle text-green-400' :
+                                alerta.tipo === 'danger' ? 'fas fa-exclamation-circle text-red-400' :
+                                alerta.tipo === 'warning' ? 'fas fa-exclamation-triangle text-yellow-400' :
+                                'fas fa-info-circle text-blue-400'
+                            }`"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium" x-text="alerta.titulo"></h3>
+                            <div class="text-sm mt-1" x-text="alerta.mensaje"></div>
+                        </div>
+                        <div class="ml-auto pl-3">
+                            <div class="-mx-1.5 -my-1.5">
+                                <button @click="alerta.mostrar = false" class="inline-flex rounded-md p-1.5 hover:bg-gray-100">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p class="text-muted">Obtiene los datos más recientes de cada indicador</p>
-                    
-                    <div class="row g-2">
-                        <div class="col-md-8">
-                            <select class="form-select" x-model="indicadorSeleccionado">
+            </div>
+            
+            <!-- Controles principales -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Sincronización de Datos Actuales -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div class="bg-blue-600 text-white px-4 py-3 rounded-t-lg">
+                        <h3 class="text-lg font-semibold">
+                            <i class="fas fa-sync mr-2"></i>
+                            Sincronización de Datos Actuales
+                        </h3>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-gray-600 mb-4">Obtiene los datos más recientes de cada indicador</p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <select class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                    x-model="indicadorSeleccionado">
                                 <option value="todos">Todos los indicadores</option>
                                 <option value="tiie">TIIE a 28 días</option>
                                 <option value="tipoCambio">Tipo de Cambio</option>
@@ -113,36 +201,33 @@ session_start();
                                 <option value="cpp">CPP</option>
                                 <option value="udis">UDIS</option>
                             </select>
-                        </div>
-                        <div class="col-md-4">
+                            
                             <button 
-                                class="btn btn-primary w-100"
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                                 @click="sincronizarDiario()"
                                 :disabled="procesando">
-                                <i class="fas fa-download me-1"></i>
+                                <i class="fas fa-download mr-2"></i>
                                 <span x-show="!procesando">Sincronizar</span>
                                 <span x-show="procesando">Procesando...</span>
                             </button>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0">
-                        <i class="fas fa-history me-2"></i>
-                        Carga de Datos Históricos
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted">Carga completa de datos históricos (puede tardar hasta 30 min)</p>
-                    
-                    <div class="row g-2">
-                        <div class="col-md-8">
-                            <select class="form-select" x-model="indicadorHistorico">
+                
+                <!-- Carga de Datos Históricos -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div class="bg-yellow-500 text-gray-900 px-4 py-3 rounded-t-lg">
+                        <h3 class="text-lg font-semibold">
+                            <i class="fas fa-history mr-2"></i>
+                            Carga de Datos Históricos
+                        </h3>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-gray-600 mb-4">Carga completa de datos históricos (puede tardar hasta 30 min)</p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-3 mb-4">
+                            <select class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500" 
+                                    x-model="indicadorHistorico">
                                 <option value="todos">Todos los históricos</option>
                                 <option value="tiie">TIIE (desde 1993)</option>
                                 <option value="tdc">Tipo Cambio (desde 2021)</option>
@@ -150,125 +235,106 @@ session_start();
                                 <option value="cpp">CPP (desde 1975)</option>
                                 <option value="udis">UDIS (desde 1995)</option>
                             </select>
-                        </div>
-                        <div class="col-md-4">
+                            
                             <button 
-                                class="btn btn-warning w-100 text-dark"
+                                class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 py-2 rounded-md font-medium transition duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                                 @click="cargarHistorico()"
                                 :disabled="procesando">
-                                <i class="fas fa-database me-1"></i>
+                                <i class="fas fa-database mr-2"></i>
                                 <span x-show="!procesando">Cargar</span>
                                 <span x-show="procesando">Cargando...</span>
                             </button>
                         </div>
-                    </div>
-                    
-                    <!-- Opciones avanzadas -->
-                    <div class="mt-3">
-                        <a href="#" @click.prevent="mostrarAvanzadas = !mostrarAvanzadas" class="text-decoration-none">
-                            <small>
-                                <i :class="mostrarAvanzadas ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
-                                Opciones avanzadas
-                            </small>
-                        </a>
                         
-                        <div x-show="mostrarAvanzadas" x-transition class="mt-2">
-                            <div class="row g-2">
-                                <div class="col-md-6">
-                                    <label class="form-label small">Fecha inicio:</label>
-                                    <input type="date" class="form-control form-control-sm" x-model="fechaInicio">
+                        <!-- Opciones avanzadas -->
+                        <div>
+                            <button @click="mostrarAvanzadas = !mostrarAvanzadas" class="flex items-center text-sm text-gray-600 hover:text-gray-800">
+                                <i :class="`fas fa-chevron-${mostrarAvanzadas ? 'up' : 'down'} mr-1`"></i>
+                                Opciones avanzadas
+                            </button>
+                            
+                            <div x-show="mostrarAvanzadas" x-transition class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Fecha inicio:</label>
+                                    <input type="date" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500" 
+                                           x-model="fechaInicio">
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small">Fecha fin:</label>
-                                    <input type="date" class="form-control form-control-sm" x-model="fechaFin">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Fecha fin:</label>
+                                    <input type="date" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500" 
+                                           x-model="fechaFin">
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <!-- Estadísticas -->
-    <div class="row mb-4">
-        <div class="col">
-            <div class="card">
-                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-bar me-2"></i>
+            
+            <!-- Estadísticas -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+                <div class="bg-blue-500 text-white px-4 py-3 rounded-t-lg flex justify-between items-center">
+                    <h3 class="text-lg font-semibold">
+                        <i class="fas fa-chart-bar mr-2"></i>
                         Estadísticas de Indicadores
-                    </h5>
-                    <button class="btn btn-sm btn-light" @click="obtenerEstadisticas()">
-                        <i class="fas fa-refresh"></i> Actualizar
+                    </h3>
+                    <button class="bg-white text-blue-600 hover:bg-gray-100 px-3 py-1 rounded-md text-sm font-medium transition duration-200" 
+                            @click="obtenerEstadisticas()">
+                        <i class="fas fa-refresh mr-1"></i> Actualizar
                     </button>
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
+                <div class="p-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                         <template x-for="(stats, key) in estadisticas" :key="key">
-                            <div class="col-md-4 col-lg-2">
-                                <div class="card indicator-card h-100">
-                                    <div class="card-body text-center">
-                                        <h6 class="card-title text-primary" x-text="stats.nombre"></h6>
-                                        <div class="mb-2">
-                                            <small class="text-muted">Total registros:</small>
-                                            <p class="h5 mb-0" x-text="stats.total_registros || '0'"></p>
-                                        </div>
-                                        <div class="mb-2">
-                                            <small class="text-muted">Último valor:</small>
-                                            <p class="h6 mb-0" x-text="stats.ultimo_dato ? stats.ultimo_dato.toFixed(4) : 'N/A'"></p>
-                                        </div>
-                                        <div>
-                                            <small class="text-muted">Fecha:</small>
-                                            <p class="small mb-0" x-text="stats.fecha_ultimo || 'N/A'"></p>
-                                        </div>
+                            <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 text-center transition duration-200 hover:shadow-md">
+                                <h4 class="font-semibold text-blue-600 mb-3" x-text="stats.nombre"></h4>
+                                <div class="space-y-2">
+                                    <div>
+                                        <p class="text-xs text-gray-500">Total registros:</p>
+                                        <p class="text-lg font-bold text-gray-800" x-text="stats.total_registros || '0'"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Último valor:</p>
+                                        <p class="text-md font-semibold text-gray-800" x-text="stats.ultimo_dato ? stats.ultimo_dato.toFixed(4) : 'N/A'"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Fecha:</p>
+                                        <p class="text-sm text-gray-600" x-text="stats.fecha_ultimo || 'N/A'"></p>
                                     </div>
                                 </div>
                             </div>
                         </template>
                     </div>
                     
-                    <div x-show="Object.keys(estadisticas).length === 0" class="text-center py-4">
-                        <p class="text-muted">No hay estadísticas disponibles. Haz clic en "Actualizar" para cargarlas.</p>
+                    <div x-show="Object.keys(estadisticas).length === 0" class="text-center py-8">
+                        <p class="text-gray-500">No hay estadísticas disponibles. Haz clic en "Actualizar" para cargarlas.</p>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <!-- Visor de Logs -->
-    <div class="row">
-        <div class="col">
-            <div class="card">
-                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-terminal me-2"></i>
+            
+            <!-- Visor de Logs -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div class="bg-gray-800 text-white px-4 py-3 rounded-t-lg flex justify-between items-center">
+                    <h3 class="text-lg font-semibold">
+                        <i class="fas fa-terminal mr-2"></i>
                         Registro de Actividad (Log)
-                    </h5>
-                    <div>
-                        <button class="btn btn-sm btn-light me-2" @click="verLog()">
-                            <i class="fas fa-eye"></i> Ver Log
+                    </h3>
+                    <div class="flex space-x-2">
+                        <button class="bg-white text-gray-800 hover:bg-gray-100 px-3 py-1 rounded-md text-sm font-medium transition duration-200" 
+                                @click="verLog()">
+                            <i class="fas fa-eye mr-1"></i> Ver Log
                         </button>
-                        <button class="btn btn-sm btn-danger" @click="limpiarLog()">
-                            <i class="fas fa-trash"></i> Limpiar
+                        <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm font-medium transition duration-200" 
+                                @click="limpiarLog()">
+                            <i class="fas fa-trash mr-1"></i> Limpiar
                         </button>
                     </div>
                 </div>
-                <div class="card-body p-0">
+                <div class="p-0">
                     <div class="log-container" x-html="logContent"></div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
-    
-    <!-- Loader Modal  
-    <div x-show="procesando" class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.5); z-index: 9999;">
-        <div class="bg-white rounded p-4 text-center">
-            <div class="loader mb-3"></div>
-            <p class="mb-0" x-text="mensajeProcesando"></p>
-        </div>
-    </div>
-    -->
 </div>
 
 <script>
@@ -477,10 +543,46 @@ function banxicoApp() {
         }
     }
 }
-</script>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+// Script para el sidebar (compatible con el código existente)
+function sidebar(initialState, userId) {
+    return {
+        sidebarOpen: initialState,
+        userId: userId,
+        
+        init() {
+            // Cargar estado inicial del sidebar
+            this.sidebarOpen = this.getStoredSidebarState();
+        },
+        
+        toggleSidebar() {
+            this.sidebarOpen = !this.sidebarOpen;
+            this.saveSidebarState();
+        },
+        
+        saveSidebarState() {
+            // Guardar estado usando fetch
+            const formData = new FormData();
+            formData.append('accion', 'guardar_estado_sidebar');
+            formData.append('estado', this.sidebarOpen ? 1 : 0);
+            
+            fetch('ajax_handler.php', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            }).catch(error => {
+                console.error('Error guardando estado del sidebar:', error);
+            });
+        },
+        
+        getStoredSidebarState() {
+            return this.sidebarOpen;
+        }
+    }
+}
+</script>
 
 </body>
 </html>
