@@ -142,6 +142,7 @@ class Session {
     /**
      * Verifica si el usuario tiene un permiso específico
      */
+    /*
     public function hasPermission($modulo, $permiso, $subpermiso = null) {
         if (!isset($_SESSION['permissions']) || empty($_SESSION['permissions'])) {
             return false;
@@ -157,7 +158,7 @@ class Session {
         
         return false;
     }
-    
+  */
     /**
      * Verifica si es administrador
      */

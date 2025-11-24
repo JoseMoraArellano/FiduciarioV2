@@ -21,6 +21,8 @@ $userId = $session->getUserId();
 $isAdmin = $session->isAdmin();
 $userPermissions = $userData['permissions'] ?? [];
 
+$permissionsObj = new Permissions();
+
 //$sidebar = new Sidebar($userPermissions, $userId, 'catalogos.php', $isAdmin);
 //$sidebar = new Sidebar($userPermissions, $userId, 'variables.php', $isAdmin);
 $currentFile = basename(__FILE__);
@@ -28,9 +30,16 @@ $sidebar = new Sidebar($userPermissions, $userId, $currentFile, $isAdmin);
 $menuStats = $sidebar->getMenuStats();
 $db = Database::getInstance()->getConnection();
 // Verificar permisos
-$canRead = $session->hasPermission('configuracion', 'lire', 'leer') || $isAdmin;
-$canUpdate = $session->hasPermission('configuracion', 'modifier', 'actualizar') || $isAdmin;
-$canDelete = $session->hasPermission('configuracion', 'supprimer', 'eliminar') || $isAdmin;
+//$canRead = $session->hasPermission('configuracion', 'lire', 'leer') || $isAdmin;
+// $canUpdate = $session->hasPermission('configuracion', 'modifier', 'actualizar') || $isAdmin;
+// $canDelete = $session->hasPermission('configuracion', 'supprimer', 'eliminar') || $isAdmin;
+
+
+$canRead = $permissionsObj->hasPermission($userId, 'configuracion', 'lire', 'tiie') || $isAdmin;
+$canUpdate = $permissionsObj->hasPermission($userId, 'configuracion', 'modifier', 'tiie') || $isAdmin;
+$canDelete = $permissionsObj->hasPermission($userId, 'configuracion', 'supprimer', 'tiie') || $isAdmin;
+
+
 
 if (!$canRead) {
     header('Location: ../../login.php?error=permission_denied');
