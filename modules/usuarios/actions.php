@@ -242,6 +242,7 @@ switch ($action) {
             'note_private' => $_POST['note_private'] ?? null,
             'gender' => $_POST['gender'] ?? null,
             'adminfide' => $_POST['adminfide'] ?? null,
+            'supervisor' => $_POST['supervisor'] ?? null,
         ];
         
         // API Key - solo admin puede modificar

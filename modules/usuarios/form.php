@@ -1,4 +1,5 @@
 <?php
+
 /**
  * modules/usuarios/form.php
  * Formulario para crear/editar usuarios
@@ -305,7 +306,8 @@ if ($isEdit) {
                     </div>
                     
                     <!-- Roles y Estado -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<!--                <div class="grid grid-cols-1 md:grid-cols-3 gap-4"> -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         
                         <!-- Administrador -->
                         <label class="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition">
@@ -332,8 +334,22 @@ if ($isEdit) {
                             <span class="ml-3">
                                 <span class="block text-sm font-medium text-gray-900">Empleado</span>
                                 <span class="block text-xs text-gray-500">Usuario interno</span>
-                            </span>
+                            </span>                            
                         </label>
+                            <!-- 🔹 NUEVO: Admin Fideicomisos -->
+                            <label class="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition">
+                                <input 
+                                    type="checkbox" 
+                                    name="adminfide" 
+                                    value="1"
+                                    <?php echo getFieldValue('adminfide', $usuario, $formData) ? 'checked' : ''; ?>
+                                    class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                                >
+                                <span class="ml-3">
+                                    <span class="block text-sm font-medium text-gray-900">Fideicomisos</span>
+                                    <span class="block text-xs text-gray-500">Administrador de Fideicomisos</span>
+                                </span>
+                            </label>
                         
                         <!-- Activo -->
                         <label class="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition">
@@ -454,26 +470,27 @@ if ($isEdit) {
                     >
                 </div>
                 
-                <!-- Supervisor -->
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Supervisor (Adminfide)
-                    </label>
-                    <select 
-                        name="adminfide" 
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                        <option value="">Sin supervisor</option>
-                        <?php 
-                        $currentSupervisor = getFieldValue('adminfide', $usuario, $formData);
-                        foreach ($supervisores as $supervisor): 
-                        ?>
-                        <option value="<?php echo $supervisor['id']; ?>" <?php echo $currentSupervisor == $supervisor['id'] ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($supervisor['fullname'] ?? $supervisor['name']); ?>
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                    <!-- Supervisor -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Supervisor
+                        </label>
+                        <select 
+                            name="supervisor" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                            <option value="">Sin supervisor</option>
+                            <?php 
+                            $currentSupervisor = getFieldValue('supervisor', $usuario, $formData);
+                            foreach ($supervisores as $supervisor): 
+                            ?>
+                            <option value="<?php echo $supervisor['id']; ?>" <?php echo $currentSupervisor == $supervisor['id'] ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($supervisor['fullname'] ?? $supervisor['name']); ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <p class="mt-1 text-xs text-gray-500">Asignar un supervisor directo a este usuario</p>
+                    </div>
                 
                 <!-- Dirección -->
                 <div class="md:col-span-2">

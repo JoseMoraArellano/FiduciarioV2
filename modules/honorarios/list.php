@@ -41,9 +41,14 @@ if (!$canView) {
 
 
 try {
-    $query = "SELECT * FROM t_cat_periodos
-    WHERE activo = true
-    ORDER BY plazo ASC";
+    $query = "SELECT id, nombre, plazo, activo FROM t_cat_periodos";
+
+    if (!$isAdmin) {
+        $query .= " WHERE activo = true";
+    }
+
+    $query .= " ORDER BY plazo ASC";
+
     $stmt = $db->prepare($query);
     $stmt->execute();
     $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -61,7 +66,7 @@ try {
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.0/dist/tailwind.min.css" rel="stylesheet">
 <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-<div x-data="inpcController()" x-init="init()" class="p-6 space-y-6">
+<div x-data="honoController()" x-init="init()" class="p-6 space-y-6">
 
     <!-- Header -->
     <div class="flex items-center justify-between">
@@ -75,10 +80,6 @@ try {
         <?php endif; ?>
     </div>
 
-
-
-
-
     <!-- Tabla -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
         <div class="overflow-x-auto">
@@ -86,18 +87,17 @@ try {
                 <thead class="bg-gray-50">
                     <tr>
                         <?php if ($isAdmin): ?>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('id')">
+                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('id')">
                             <div class="flex items-center gap-2">ID <span x-show="sort.column === 'id'"> <template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
                         </th>
                         <?php endif; ?>
-
-                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('plazo')">
-                            <div class="flex items-center justify-end gap-2">Plazo <span x-show="sort.column === 'plazo'"> <template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
-                        </th>
-
+                        
+                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('plazo')">
+                            <div class="">Plazo en meses <span x-show="sort.column === 'plazo'"> <template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
+                        </th>                                                
+                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Plazo en Nombre</th>          
                         <?php if ($isAdmin): ?>
-                    <!-- <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>-->
-                    <!--    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registro</th> -->
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>                        
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                         <?php endif; ?>
                     </tr>
@@ -107,14 +107,18 @@ try {
                     <tr class="hover:bg-gray-50">
                         <?php if ($isAdmin): ?>
                         <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($row['id']); ?></td>
-                        <?php endif; ?>
-
-                        <td class="px-4 py-3 text-sm text-gray-700"></td>
-                        <td class="px-4 py-3 text-sm text-gray-700 text-right"><?= number_format($row['plazo'], 4); ?></td>
-
+                        <?php endif; ?>                        
+                        <td class="px-4 py-3 text-sm text-gray-700 text-center"><?= number_format($row['plazo'], 0); ?></td>
+                        <td class="px-4 py-3 text-sm  text-gray-700 text-center"><?= htmlspecialchars($row['nombre'] ?? $row['nombre'] ?? ''); ?></td>                       
                         <?php if ($isAdmin): ?>
-
-                        <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($row['nombre'] ?? $row['nombre'] ?? ''); ?></td>                        
+                        <td class="px-4 py-3 text-sm">
+                            <?php if ($row['activo']): ?>
+                                <span class="inline-flex items-center px-2 py-1 rounded text-xs bg-green-100 text-green-800">Activo</span>
+                            <?php else: ?>
+                                <span class="inline-flex items-center px-2 py-1 rounded text-xs bg-red-100 text-red-800">Inactivo</span>
+                            <?php endif; ?>
+                        </td>
+                        <?php endif; ?>
                         <td class="px-4 py-3 text-center">
                             <div class="inline-flex gap-2">
                                 <?php if ($canEdit): ?>
@@ -129,7 +133,6 @@ try {
                                 <?php endif; ?>
                             </div>
                         </td>
-                        <?php endif; ?>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -172,7 +175,7 @@ try {
 </div>
 
 <script>
-function inpcController() {
+function honoController() {
     return {
         // Datos iniciales (inyectar registros desde PHP para ordenamiento client-side)
         registros: <?= json_encode(array_map(function($r){
@@ -185,14 +188,12 @@ function inpcController() {
             ];
         }, $registros)); ?>,
 
-        sort: { column: 'fecha', desc: true },
+        sort: { column: 'id', desc: true },
 
         modal: { open: false, title: '', actionText: '' },
-        form: { id: '', fecha: '', indice: '', activo: 1 },
+        form: { id: '',  plazo: '', nombre : '', activo: 1 },
 
         init() {
-            // Render inicial (ya están los rows generados por PHP en DOM, pero mantenemos registros para resort)
-            // Si quieres reemplazar filas por render client-side, puedes hacerlo aquí.
         },
 
         sortBy(column) {
@@ -209,7 +210,7 @@ function inpcController() {
             const col = this.sort.column;
             this.registros.sort((a, b) => {
                 let va = a[col], vb = b[col];
-                if (col === 'fecha') {
+                if (col === 'id') {
                     va = new Date(va); vb = new Date(vb);
                 }
                 if (va < vb) return this.sort.desc ? 1 : -1;
@@ -236,14 +237,7 @@ function inpcController() {
                     tdId.textContent = r.id;
                     tr.appendChild(tdId);
                 }
-
-                const tdFecha = document.createElement('td');
-                tdFecha.className = 'px-4 py-3 text-sm text-gray-700';
-                const d = new Date(r.fecha);
-                const dd = String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear();
-                tdFecha.textContent = dd;
-                tr.appendChild(tdFecha);
-
+                
                 const tdDato = document.createElement('td');
                 tdDato.className = 'px-4 py-3 text-sm text-gray-700 text-right';
                 tdDato.textContent = Number(r.plazo).toFixed(4);
@@ -271,21 +265,21 @@ function inpcController() {
 
         openCreateModal() {
             this.modal.open = true;
-            this.modal.title = 'Nuevo Indice inpc';
+            this.modal.title = 'Nuevo Honorario';
             this.modal.actionText = 'Guardar';
-            this.form = { id: '', fecha: '', indice: '' };
+            this.form = { id: '', plazo: '', nombre : '' };
         },
 
         openEditModal(id) {
-            fetch(`modules/inpc/actions.php?action=get&id=${id}`)
+            fetch(`modules/honorarios/actions.php?action=get&id=${id}`)
                 .then(r => r.json())
                 .then(resp => {
                     if (resp.success) {
                         this.form.id = resp.data.id;
-                        this.form.fecha = resp.data.fecha;
-                        this.form.indice = resp.data.indice;
+                        this.form.plazo = resp.data.plazo;
+                        this.form.nombre = resp.data.nombre;
                         this.modal.open = true;
-                        this.modal.title = 'Editar Indice inpc';
+                        this.modal.title = 'Editar Honorario';
                         this.modal.actionText = 'Actualizar';
                     } else {
                         alert(resp.message || 'No se pudo obtener el registro.');
@@ -311,7 +305,7 @@ function inpcController() {
 //    console.log('Datos enviados:', Object.fromEntries(body));
 //    console.log('Form original:', this.form);            
 
-            fetch('modules/inpc/actions.php', {
+            fetch('modules/honorarios/actions.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: body.toString()
@@ -337,7 +331,7 @@ function inpcController() {
             const body = new URLSearchParams();
             body.append('action', 'delete');
             body.append('id', id);
-            fetch('modules/inpc/actions.php', {
+            fetch('modules/honorarios/actions.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: body.toString()

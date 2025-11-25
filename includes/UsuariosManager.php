@@ -136,50 +136,52 @@ class UsuariosManager {
     /**
      * Obtener un usuario por ID con toda su información
      */
-    public function getUsuario($id) {
-        try {
-            $sql = "
-                SELECT 
-                    u.*,
-                    p.*,
-                    u.id as user_id,
-                    p.id as perfil_id
-                FROM users u
-                LEFT JOIN t_perfil p ON u.id = p.fk_user
-                WHERE u.id = :id
-            ";
-            
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute(['id' => $id]);
-            
-            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if (!$usuario) {
+        public function getUsuario($id) {
+            try {
+                $sql = "
+                    SELECT 
+                        u.*,
+                        p.*,
+                        u.id as user_id,
+                        p.id as perfil_id,
+                        CONCAT(sup_perfil.firstname, ' ', sup_perfil.lastname) as supervisor_name
+                    FROM users u
+                    LEFT JOIN t_perfil p ON u.id = p.fk_user
+                    LEFT JOIN t_perfil sup_perfil ON p.supervisor = sup_perfil.fk_user
+                    WHERE u.id = :id
+                ";
+                
+                $stmt = $this->db->prepare($sql);
+                $stmt->execute(['id' => $id]);
+                
+                $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if (!$usuario) {
+                    return [
+                        'success' => false,
+                        'message' => 'Usuario no encontrado'
+                    ];
+                }
+                
+                // Obtener grupos del usuario
+                $usuario['grupos'] = $this->getUserGroups($id);
+                
+                // Obtener permisos directos
+                $usuario['permisos'] = $this->getUserPermissions($id);
+                
+                return [
+                    'success' => true,
+                    'data' => $usuario
+                ];
+                
+            } catch (PDOException $e) {
+                error_log("Error getting usuario: " . $e->getMessage());
                 return [
                     'success' => false,
-                    'message' => 'Usuario no encontrado'
+                    'message' => 'Error al obtener usuario'
                 ];
             }
-            
-            // Obtener grupos del usuario
-            $usuario['grupos'] = $this->getUserGroups($id);
-            
-            // Obtener permisos directos
-            $usuario['permisos'] = $this->getUserPermissions($id);
-            
-            return [
-                'success' => true,
-                'data' => $usuario
-            ];
-            
-        } catch (PDOException $e) {
-            error_log("Error getting usuario: " . $e->getMessage());
-            return [
-                'success' => false,
-                'message' => 'Error al obtener usuario'
-            ];
         }
-    }
     
     /**
      * Crear nuevo usuario
@@ -265,172 +267,209 @@ class UsuariosManager {
     /**
      * Actualizar usuario existente
      */
-    public function updateUsuario($id, $data) {
-        try {
-            $this->db->beginTransaction();
-            
-            // Validar datos
-            $validation = $this->validateUsuarioData($data, $id);
-            if (!$validation['success']) {
-                return $validation;
-            }
-            
-            // Verificar email único (excepto el mismo usuario)
-            if ($this->emailExists($data['email'], $id)) {
-                return [
-                    'success' => false,
-                    'message' => 'El email ya está registrado por otro usuario'
-                ];
-            }
-            
-            // Verificar username único (excepto el mismo usuario)
-            if ($this->usernameExists($data['name'], $id)) {
-                return [
-                    'success' => false,
-                    'message' => 'El nombre de usuario ya existe'
-                ];
-            }
-            
-            // Actualizar usuario
-            $sql = "
-                UPDATE users SET
-                    name = :name,
-                    email = :email,
-                    admin = :admin,
-                    empleado = :empleado,
-                    statut = :statut,
-                    updated_at = NOW()
-            ";
-            
-            $params = [
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'admin' => isset($data['admin']) ? 1 : 0,
-                'empleado' => isset($data['empleado']) ? 1 : 0,
-                'statut' => isset($data['statut']) ? (int)$data['statut'] : 1,
-                'id' => $id
-            ];
-            
-            // Actualizar password solo si se proporciona
-            if (!empty($data['password'])) {
-                $sql .= ", password = :password";
-                $params['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
-            }
-            
-            // Actualizar API key solo si es admin quien lo solicita
-            if (isset($data['api_key']) && !empty($data['api_key'])) {
-                $sql .= ", api_key = :api_key";
-                $params['api_key'] = $data['api_key'];
-            }
-            
-            $sql .= " WHERE id = :id";
-            
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute($params);
-            
-            // Actualizar perfil
-            $this->updatePerfil($id, $data);
+public function updateUsuario($id, $data) {
+    try {
 
-            // Registrar cambios en historial
-            $changes = $this->compareChanges($oldData['data'], $data);
-            if (!empty($changes)) {
-                $this->addHistorial($id, 'UPDATE', 'usuario actualizado', $changes);
-            }            
-            
-            $this->db->commit();
-            
-            return [
-                'success' => true,
-                'message' => 'Usuario actualizado exitosamente'
-            ];
-            
-        } catch (PDOException $e) {
+        $this->db->beginTransaction();
+        
+        
+        // 1️⃣ Obtener datos antiguos ANTES de actualizar
+        $oldDataResult = $this->getUsuario($id);
+        if (!$oldDataResult['success']) {
             $this->db->rollBack();
-            error_log("Error updating usuario: " . $e->getMessage());
+            return $oldDataResult;
+        }
+        $oldData = $oldDataResult['data'];
+        
+        // 2️⃣ Validaciones
+        $validation = $this->validateUsuarioData($data, $id);
+        if (!$validation['success']) {
+            $this->db->rollBack();
+            return $validation;
+        }
+        
+        if ($this->emailExists($data['email'], $id)) {
+            $this->db->rollBack();
             return [
                 'success' => false,
-                'message' => 'Error al actualizar usuario'
+                'message' => 'El email ya está registrado por otro usuario'
             ];
         }
+        
+        if ($this->usernameExists($data['name'], $id)) {
+            $this->db->rollBack();
+            return [
+                'success' => false,
+                'message' => 'El nombre de usuario ya existe'
+            ];
+        }
+        
+        // 3️⃣ Actualizar usuario
+        $sql = "
+            UPDATE users SET
+                name = :name,
+                email = :email,
+                admin = :admin,
+                empleado = :empleado,
+                statut = :statut,
+                updated_at = NOW()
+        ";
+        
+        $params = [
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'admin' => isset($data['admin']) ? 1 : 0,
+            'empleado' => isset($data['empleado']) ? 1 : 0,
+            'statut' => isset($data['statut']) ? (int)$data['statut'] : 1,
+            'id' => $id
+        ];
+        
+        if (!empty($data['password'])) {
+            $sql .= ", password = :password";
+            $params['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+        }
+        
+        if (isset($data['api_key']) && !empty($data['api_key'])) {
+            $sql .= ", api_key = :api_key";
+            $params['api_key'] = $data['api_key'];
+        }
+        
+        $sql .= " WHERE id = :id";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        
+        // 4️⃣ Actualizar perfil
+        $this->updatePerfil($id, $data);
+
+        // 5️⃣ Registrar cambios en historial (dentro de la transacción)
+        $changes = $this->compareChanges($oldData, $data);
+        if (!empty($changes)) {
+            $this->addHistorial($id, 'UPDATE', 'Usuario actualizado', $changes);
+        }
+        
+        // 6️⃣ Commit al final
+        $this->db->commit();
+        
+        return [
+            'success' => true,
+            'message' => 'Usuario actualizado exitosamente'
+        ];
+        
+    } catch (PDOException $e) {
+        if ($this->db->inTransaction()) {
+            $this->db->rollBack();
+        }
+        error_log("Error updating usuario: " . $e->getMessage());
+        error_log("Error code: " . $e->getCode());
+        error_log("Stack trace: " . $e->getTraceAsString());
+        
+        return [
+            'success' => false,
+            'message' => 'Error al actualizar usuario: ' . $e->getMessage()
+        ];
     }
-    
+}  
     /**
      * Eliminar usuario (soft delete - cambiar statut a -1)
      */
-    public function deleteUsuario($id) {
-        try {
-            // No permitir eliminar usuario ID 1 (super admin)
-            if ($id == 1) {
-                return [
-                    'success' => false,
-                    'message' => 'No se puede eliminar el usuario administrador principal'
-                ];
-            }
-            
-            $sql = "UPDATE users SET statut = -1, updated_at = NOW() WHERE id = :id";
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute(['id' => $id]);
-
-            // Registrar en historial
-            $this->addHistorial($id, 'DELETE', 'Usuario eliminado');
-            
-            return [
-                'success' => true,
-                'message' => 'Usuario eliminado exitosamente'
-            ];
-            
-        } catch (PDOException $e) {
-            error_log("Error deleting usuario: " . $e->getMessage());
+public function deleteUsuario($id) {
+    try {
+        // No permitir eliminar usuario ID 1
+        if ($id == 1) {
             return [
                 'success' => false,
-                'message' => 'Error al eliminar usuario'
+                'message' => 'No se puede eliminar el usuario administrador principal'
             ];
         }
+        
+        $this->db->beginTransaction();
+        
+        // 1️⃣ Actualizar estado
+        $sql = "UPDATE users SET statut = -1, updated_at = NOW() WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['id' => $id]);
+
+        // 2️⃣ Registrar en historial
+        $this->addHistorial($id, 'DELETE', 'Usuario eliminado');
+        
+        // 3️⃣ Commit
+        $this->db->commit();
+        
+        return [
+            'success' => true,
+            'message' => 'Usuario eliminado exitosamente'
+        ];
+        
+    } catch (PDOException $e) {
+        if ($this->db->inTransaction()) {
+            $this->db->rollBack();
+        }
+        error_log("Error deleting usuario: " . $e->getMessage());
+        return [
+            'success' => false,
+            'message' => 'Error al eliminar usuario'
+        ];
     }
+}
     
     /**
      * Cambiar estado del usuario (activar/desactivar)
      */
-    public function toggleStatus($id) {
-        try {
-            // No permitir desactivar usuario ID 1
-            if ($id == 1) {
-                return [
-                    'success' => false,
-                    'message' => 'No se puede desactivar el usuario administrador principal'
-                ];
-            }
-            
-            $sql = "
-                UPDATE users 
-                SET statut = CASE WHEN statut = 1 THEN 0 ELSE 1 END,
-                    updated_at = NOW()
-                WHERE id = :id
-                RETURNING statut
-            ";
-            
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute(['id' => $id]);
-            
-            $newStatus = $stmt->fetch()['statut'];
-
-            // Registrar en historial
-            $this->addHistorial($id, 'STATUS_CHANGE', $newStatus ? 'Usuario activado' : 'Usuario desactivado');
-            
-            return [
-                'success' => true,
-                'message' => $newStatus == 1 ? 'Usuario activado' : 'Usuario desactivado',
-                'new_status' => $newStatus
-            ];
-            
-        } catch (PDOException $e) {
-            error_log("Error toggling status: " . $e->getMessage());
+public function toggleStatus($id) {
+    try {
+        // No permitir desactivar usuario ID 1
+        if ($id == 1) {
             return [
                 'success' => false,
-                'message' => 'Error al cambiar estado'
+                'message' => 'No se puede desactivar el usuario administrador principal'
             ];
         }
+        
+        $this->db->beginTransaction();
+        
+        // 1️⃣ Cambiar estado
+        $sql = "
+            UPDATE users 
+            SET statut = CASE WHEN statut = 1 THEN 0 ELSE 1 END,
+                updated_at = NOW()
+            WHERE id = :id
+            RETURNING statut
+        ";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['id' => $id]);
+        
+        $newStatus = $stmt->fetch()['statut'];
+
+        // 2️⃣ Registrar en historial
+        $this->addHistorial(
+            $id, 
+            'STATUS_CHANGE', 
+            $newStatus ? 'Usuario activado' : 'Usuario desactivado',
+            ['new_status' => $newStatus]
+        );
+        
+        // 3️⃣ Commit
+        $this->db->commit();
+        
+        return [
+            'success' => true,
+            'message' => $newStatus == 1 ? 'Usuario activado' : 'Usuario desactivado',
+            'new_status' => $newStatus
+        ];
+        
+    } catch (PDOException $e) {
+        if ($this->db->inTransaction()) {
+            $this->db->rollBack();
+        }
+        error_log("Error toggling status: " . $e->getMessage());
+        return [
+            'success' => false,
+            'message' => 'Error al cambiar estado'
+        ];
     }
+}
     
     /**
      * Duplicar usuario (copiar datos y permisos)
@@ -563,22 +602,47 @@ class UsuariosManager {
     /**
      * Crear perfil de usuario
      */
+/**
+ * Crear perfil de usuario
+ */
     private function createPerfil($userId, $data) {
         $sql = "
             INSERT INTO t_perfil (
                 fk_user, civility, lastname, firstname, direccion,
                 zip, ciudad, pais, edo, birth, puesto, tel, tel2, ext,
-                firma, note_public, note_private, gender, adminfide
+                firma, note_public, note_private, gender, adminfide, supervisor
             )
             VALUES (
                 :fk_user, :civility, :lastname, :firstname, :direccion,
                 :zip, :ciudad, :pais, :edo, :birth, :puesto, :tel, :tel2, :ext,
-                :firma, :note_public, :note_private, :gender, :adminfide
+                :firma, :note_public, :note_private, :gender, :adminfide, :supervisor
             )
         ";
         
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([
+        // Preparar valores
+        $supervisorValue = null;
+        if (isset($data['supervisor']) && $data['supervisor'] !== '' && $data['supervisor'] !== '0') {
+            $supervisorValue = (int)$data['supervisor'];
+        }
+        
+        $birthValue = null;
+        if (!empty($data['birth']) && $data['birth'] !== '0000-00-00') {
+            $birthValue = $data['birth'];
+        }
+        
+        // AdminFide: convertir correctamente a boolean
+        $adminFideValue = false; // DEFAULT FALSE
+        if (isset($data['adminfide'])) {
+            if ($data['adminfide'] === true || 
+                $data['adminfide'] === 1 || 
+                $data['adminfide'] === '1' || 
+                $data['adminfide'] === 'on' ||
+                strtolower($data['adminfide']) === 'true') {
+                $adminFideValue = true;
+            }
+        }
+        
+        $params = [
             'fk_user' => $userId,
             'civility' => $data['civility'] ?? null,
             'lastname' => $data['lastname'] ?? null,
@@ -588,7 +652,7 @@ class UsuariosManager {
             'ciudad' => $data['ciudad'] ?? null,
             'pais' => $data['pais'] ?? 'México',
             'edo' => $data['edo'] ?? null,
-            'birth' => $data['birth'] ?? null,
+            'birth' => $birthValue,
             'puesto' => $data['puesto'] ?? null,
             'tel' => $data['tel'] ?? null,
             'tel2' => $data['tel2'] ?? null,
@@ -597,13 +661,42 @@ class UsuariosManager {
             'note_public' => $data['note_public'] ?? null,
             'note_private' => $data['note_private'] ?? null,
             'gender' => $data['gender'] ?? null,
-            'adminfide' => $data['adminfide'] ?? null
-        ]);
+            'adminfide' => $adminFideValue,
+            'supervisor' => $supervisorValue
+        ];
+        
+        $stmt = $this->db->prepare($sql);
+        
+        // Bind explícito
+        $stmt->bindValue(':fk_user', $params['fk_user'], PDO::PARAM_INT);
+        $stmt->bindValue(':civility', $params['civility']);
+        $stmt->bindValue(':lastname', $params['lastname']);
+        $stmt->bindValue(':firstname', $params['firstname']);
+        $stmt->bindValue(':direccion', $params['direccion']);
+        $stmt->bindValue(':zip', $params['zip']);
+        $stmt->bindValue(':ciudad', $params['ciudad']);
+        $stmt->bindValue(':pais', $params['pais']);
+        $stmt->bindValue(':edo', $params['edo']);
+        $stmt->bindValue(':birth', $params['birth']);
+        $stmt->bindValue(':puesto', $params['puesto']);
+        $stmt->bindValue(':tel', $params['tel']);
+        $stmt->bindValue(':tel2', $params['tel2']);
+        $stmt->bindValue(':ext', $params['ext']);
+        $stmt->bindValue(':firma', $params['firma']);
+        $stmt->bindValue(':note_public', $params['note_public']);
+        $stmt->bindValue(':note_private', $params['note_private']);
+        $stmt->bindValue(':gender', $params['gender']);
+        $stmt->bindValue(':adminfide', $params['adminfide'], PDO::PARAM_BOOL);
+        $stmt->bindValue(':supervisor', $params['supervisor'], PDO::PARAM_INT);
+        
+        $stmt->execute();
     }
-    
     /**
      * Actualizar perfil de usuario
      */
+/**
+ * Actualizar perfil de usuario
+ */
     private function updatePerfil($userId, $data) {
         // Verificar si existe perfil
         $sql = "SELECT id FROM t_perfil WHERE fk_user = :fk_user";
@@ -611,7 +704,6 @@ class UsuariosManager {
         $stmt->execute(['fk_user' => $userId]);
         
         if (!$stmt->fetch()) {
-            // Si no existe, crear
             $this->createPerfil($userId, $data);
             return;
         }
@@ -636,13 +728,46 @@ class UsuariosManager {
                 note_public = :note_public,
                 note_private = :note_private,
                 gender = :gender,
-                adminfide = :adminfide
+                adminfide = :adminfide,
+                supervisor = :supervisor
             WHERE fk_user = :fk_user
         ";
         
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([
-            'fk_user' => $userId,
+        // 🔹 PREPARAR VALORES CORRECTAMENTE
+        
+        // Supervisor: convertir vacío a NULL
+        $supervisorValue = null;
+        if (isset($data['supervisor']) && $data['supervisor'] !== '' && $data['supervisor'] !== '0') {
+            $supervisorValue = (int)$data['supervisor'];
+        }
+        
+        // Birth: convertir vacío a NULL
+        $birthValue = null;
+        if (!empty($data['birth']) && $data['birth'] !== '0000-00-00') {
+            $birthValue = $data['birth'];
+        }
+        
+        // AdminFide: convertir correctamente a boolean
+        $adminFideValue = false; // 🔹 DEFAULT FALSE
+        if (isset($data['adminfide'])) {
+            // Si viene el campo, verificar su valor
+            if ($data['adminfide'] === true || 
+                $data['adminfide'] === 1 || 
+                $data['adminfide'] === '1' || 
+                $data['adminfide'] === 'on' ||
+                strtolower($data['adminfide']) === 'true') {
+                $adminFideValue = true;
+            }
+        }
+        
+        // 🔍 DEBUG
+        error_log("=== DEBUG adminfide ===");
+        error_log("Valor original: " . var_export($data['adminfide'] ?? 'NO EXISTE', true));
+        error_log("Valor procesado: " . var_export($adminFideValue, true));
+        error_log("Tipo: " . gettype($adminFideValue));
+        
+        // Array de parámetros
+        $params = [
             'civility' => $data['civility'] ?? null,
             'lastname' => $data['lastname'] ?? null,
             'firstname' => $data['firstname'] ?? null,
@@ -651,7 +776,7 @@ class UsuariosManager {
             'ciudad' => $data['ciudad'] ?? null,
             'pais' => $data['pais'] ?? 'México',
             'edo' => $data['edo'] ?? null,
-            'birth' => $data['birth'] ?? null,
+            'birth' => $birthValue,
             'puesto' => $data['puesto'] ?? null,
             'tel' => $data['tel'] ?? null,
             'tel2' => $data['tel2'] ?? null,
@@ -660,8 +785,36 @@ class UsuariosManager {
             'note_public' => $data['note_public'] ?? null,
             'note_private' => $data['note_private'] ?? null,
             'gender' => $data['gender'] ?? null,
-            'adminfide' => $data['adminfide'] ?? null
-        ]);
+            'adminfide' => $adminFideValue,  // 🔹 BOOLEAN LIMPIO
+            'supervisor' => $supervisorValue,
+            'fk_user' => $userId
+        ];
+        
+        $stmt = $this->db->prepare($sql);
+        
+        // 🔹 BIND EXPLÍCITO para el boolean
+        $stmt->bindValue(':civility', $params['civility']);
+        $stmt->bindValue(':lastname', $params['lastname']);
+        $stmt->bindValue(':firstname', $params['firstname']);
+        $stmt->bindValue(':direccion', $params['direccion']);
+        $stmt->bindValue(':zip', $params['zip']);
+        $stmt->bindValue(':ciudad', $params['ciudad']);
+        $stmt->bindValue(':pais', $params['pais']);
+        $stmt->bindValue(':edo', $params['edo']);
+        $stmt->bindValue(':birth', $params['birth']);
+        $stmt->bindValue(':puesto', $params['puesto']);
+        $stmt->bindValue(':tel', $params['tel']);
+        $stmt->bindValue(':tel2', $params['tel2']);
+        $stmt->bindValue(':ext', $params['ext']);
+        $stmt->bindValue(':firma', $params['firma']);
+        $stmt->bindValue(':note_public', $params['note_public']);
+        $stmt->bindValue(':note_private', $params['note_private']);
+        $stmt->bindValue(':gender', $params['gender']);
+        $stmt->bindValue(':adminfide', $params['adminfide'], PDO::PARAM_BOOL); // 🔹 TIPO EXPLÍCITO
+        $stmt->bindValue(':supervisor', $params['supervisor'], PDO::PARAM_INT);
+        $stmt->bindValue(':fk_user', $params['fk_user'], PDO::PARAM_INT);
+        
+        $stmt->execute();
     }
     
     // ========================================
@@ -689,6 +842,7 @@ class UsuariosManager {
     /**
      * Asignar permisos a usuario
      */
+    /*
     public function assignPermissions($userId, $permissionIds) {
         try {
             $this->db->beginTransaction();
@@ -728,7 +882,64 @@ class UsuariosManager {
             ];
         }
     }
-    
+    */
+    /**
+     * Asignar permisos a usuario
+     */
+    public function assignPermissions($userId, $permissionIds) {
+        try {
+            $this->db->beginTransaction();
+            
+            // 1. Eliminar permisos existentes
+            $sql = "DELETE FROM t_user_rights WHERE fk_user = :user_id";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute(['user_id' => $userId]);
+            
+            // 2. Asignar nuevos permisos
+            if (!empty($permissionIds)) {
+                // Verificar que sean valores únicos para evitar errores de PK duplicada
+                $permissionIds = array_unique($permissionIds);
+                
+                $sql = "INSERT INTO t_user_rights (fk_user, fk_id) VALUES (:user_id, :permission_id)";
+                $stmt = $this->db->prepare($sql);
+                
+                foreach ($permissionIds as $permissionId) {
+                    $stmt->execute([
+                        'user_id' => $userId,
+                        'permission_id' => $permissionId
+                    ]);
+                }
+            }
+            
+            // 3. Confirmar cambios PRIMERO
+            $this->db->commit();
+            
+            // 4. Registrar en historial DESPUÉS (si falla, no afecta los permisos guardados)
+            // Limitamos el array para que no explote si son demasiados datos
+            $logData = count($permissionIds) > 50 ? 
+                       ['count' => count($permissionIds), 'info' => 'Más de 50 permisos asignados'] : 
+                       $permissionIds;
+
+            $this->addHistorial($userId, 'PERMISSIONS_UPDATE', 'Permisos actualizados', $logData);
+            
+            return [
+                'success' => true,
+                'message' => 'Permisos asignados exitosamente'
+            ];
+            
+        } catch (PDOException $e) {
+            // Si la transacción sigue activa, hacemos rollback
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            
+            error_log("Error assigning permissions: " . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Error al asignar permisos: ' . $e->getMessage()
+            ];
+        }
+    }
     /**
      * Obtener todos los permisos disponibles agrupados por módulo
      */
@@ -850,10 +1061,11 @@ class UsuariosManager {
         /**
      * Agregar entrada al historial
      */
+    /*
     private function addHistorial($userId, $accion, $descripcion, $datosAnteriores = null) {
         try {
             $sql = "
-                INSERT INTO t_client_log (
+                INSERT INTO t_user_log (
                     fk_user, accion, descripcion,
                     datos_anteriores, usuario_id, fecha
                 )
@@ -876,32 +1088,99 @@ class UsuariosManager {
             error_log("Error adding historial: " . $e->getMessage());
         }
     }
+*/
+/**
+     * Agregar entrada al historial
+     */
+/**
+ * Agregar entrada al historial
+ * @throws PDOException si falla el registro
+ */
+/**
+ * Agregar entrada al historial
+ * @throws PDOException si falla el registro
+ */
+private function addHistorial($userId, $accion, $descripcion, $datosAnteriores = null) {
+    $sql = "
+        INSERT INTO t_user_log (
+            fk_user, accion, descripcion,
+            datos_anteriores, usuario_id, fecha
+        )
+        VALUES (
+            :user_id, :accion, :descripcion,
+            :datos_anteriores::json, :usuario_id, NOW()
+        )
+    ";
+    
+    // Procesar JSON con seguridad
+    $jsonDatos = null;
+    if ($datosAnteriores) {
+        $jsonDatos = json_encode($datosAnteriores, JSON_UNESCAPED_UNICODE);
+        
+        // Si el JSON es muy grande, resumir
+        if (strlen($jsonDatos) > 5000) { 
+            $jsonDatos = json_encode([
+                'info' => 'Datos resumidos por tamaño',
+                'count' => is_array($datosAnteriores) ? count($datosAnteriores) : 1,
+                'preview' => substr($jsonDatos, 0, 500) . '...'
+            ], JSON_UNESCAPED_UNICODE);
+        }
+    }
+
+    $stmt = $this->db->prepare($sql);
+    
+    // 🔹 NO capturamos excepciones aquí, dejamos que suban
+    $stmt->execute([
+        'user_id' => $userId,
+        'accion' => $accion,
+        'descripcion' => $descripcion,
+        'datos_anteriores' => $jsonDatos,
+        'usuario_id' => $_SESSION['user_id'] ?? 1
+    ]);
+}
+
+
 
     /**
      * comparar cambios entre datos antiguos y nuevos
      */ 
-      
-         private function compareChanges($oldData, $newData) {
-        $changes = [];
+
+
+    private function compareChanges($oldData, $newData) {
+    $changes = [];
+    
+    // Campos a comparar
+    $fieldsToCompare = [
+        'name', 'email', 'admin', 'empleado', 'statut',
+        'firstname', 'lastname', 'puesto', 'tel', 'ciudad', 'pais','adminfide', 'supervisor'
+    ];
+    
+    foreach ($fieldsToCompare as $field) {
+        $old = $oldData[$field] ?? null;
+        $new = $newData[$field] ?? null;
         
-        $fieldsToCompare = [
-            'name', 'email', 'email_verified_at', 'password', 'status'
-        ];
-        
-        foreach ($fieldsToCompare as $field) {
-            $old = $oldData[$field] ?? null;
-            $new = $newData[$field] ?? null;
-            
-            if ($old != $new) {
-                $changes[$field] = [
-                    'old' => $old,
-                    'new' => $new
-                ];
-            }
+        // Normalizar valores booleanos
+        if (in_array($field, ['admin', 'empleado','adminfide'])) {
+            $old = (int)$old;
+            $new = isset($newData[$field]) ? 1 : 0;
+        }
+                // Normalizar valores integer
+        if (in_array($field, ['supervisor'])) {
+            $old = $old ? (int)$old : null;
+            $new = $new ? (int)$new : null;
         }
         
-        return $changes;
+        // Solo registrar si cambió
+        if ($old != $new) {
+            $changes[$field] = [
+                'old' => $old,
+                'new' => $new
+            ];
+        }
     }
+    
+    return $changes;
+}
     /**
      * Validar datos de usuario
      */
@@ -971,7 +1250,7 @@ class UsuariosManager {
         $params = ['name' => $username];
         
         if ($excludeUserId) {
-            $params['exclude__id'] = $excludeUserId;
+            $params['exclude_id'] = $excludeUserId;
         }
         
         $stmt->execute($params);
