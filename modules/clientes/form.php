@@ -1,6 +1,9 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 require_once 'includes/ClienteManager.php';
-//require_once 'modules/clientes/permissions.php';
+require_once 'modules/clientes/permissions.php';
 
 $clienteManager = new ClienteManager();
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -21,20 +24,6 @@ if ($isEdit) {
             return;
         }    
             $cliente = $result['data'];
-
-            // DEBUG TEMPORAL - BORRAR DESPUÉS
-            /*
-            echo '<pre style="background: #f0f0f0; padding: 10px; margin: 10px;">';
-            echo 'isEdit: ' . ($isEdit ? 'true' : 'false') . "\n";
-            echo 'ID: ' . $id . "\n";
-            echo 'Result success: ' . ($result['success'] ? 'true' : 'false') . "\n";
-            echo 'Cliente data: ';
-            var_dump($cliente);
-            echo '</pre>';
-            */
-            // FIN DEBUG
-    // DEBUG
-
     
     if (!$clienteManager->canEdit($userId,$id,$isAdmin)) {
         echo '<div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded">';
@@ -201,7 +190,7 @@ function getFieldValue($fieldName, $cliente, $formData, $default = '') {
     </div>
     
     <!-- Formulario -->
-    <form method="POST" action="modules/clientes/accion.php" @submit="validateForm" id="clienteForm" enctype="multipart/form-data">
+    <form method="POST" action="modules/clientes/action.php" @submit="validateForm" id="clienteForm" enctype="multipart/form-data">
         <input type="hidden" name="action" value="save">
         <?php if ($isEdit): ?>
         <input type="hidden" name="id" value="<?php echo $id; ?>">
@@ -227,24 +216,34 @@ function getFieldValue($fieldName, $cliente, $formData, $default = '') {
                     <div class="mt-6 p-4 bg-gray-50 rounded-lg">
                         <h4 class="font-semibold text-gray-800 mb-3">Información</h4>
                         <div class="space-y-2 text-sm">
+                            
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Estado:</span>
                                 <span class="font-medium">
-                                    <?php echo $cliente['activo'] ? '✓ Activo' : '✗ Inactivo'; ?>
+                                    <?php echo $cliente['activo'] ? 'Activo ✅' : 'Inactivo 🚫'; ?>
                                 </span>
                             </div>
+
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Alto Riesgo:</span>
                                 <span class="font-medium">
-                                    <?php echo $cliente['altoriesg'] ? '⚠ Sí' : '✓ No'; ?>
+                                    <?php echo $cliente['altoriesg'] ? 'Alto Riesgo ⚠️' : 'No Alto Riesgo ✅'; ?>
                                 </span>
                             </div>
-                            <?php if ($cliente['fideicomitente'] || $cliente['fideicomisario']): ?>
+
                             <div class="flex justify-between">
-                                <span class="text-gray-600">Fideicomiso:</span>
-                                <span class="font-medium">✓ Sí</span>
+                                <span class="text-gray-600">Fideicomitente:</span>
+                                <span class="font-medium">
+                                    <?php echo $cliente['fideicomitente'] ? 'Sí' : 'No'; ?>
+                                </span>
                             </div>
-                            <?php endif; ?>
+
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Fideicomisario:</span>
+                                <span class="font-medium">
+                                    <?php echo $cliente['fideicomisario'] ? 'Sí' : 'No'; ?>
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <?php endif; ?>
@@ -626,33 +625,35 @@ function getFieldValue($fieldName, $cliente, $formData, $default = '') {
                         </div>
                     </label>
                     
-                    <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition">
-                        <input 
-                            type="checkbox" 
-                            name="fideicomitente" 
-                            value="1"
-                            <?php echo getFieldValue('fideicomitente', $cliente, []) ? 'checked' : ''; ?>
-                            class="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                        >
-                        <div class="ml-3">
-                            <p class="font-medium text-gray-800">Fideicomitente</p>
-                            <p class="text-xs text-gray-600">Es fideicomitente en algún fideicomiso</p>
-                        </div>
-                    </label>
-                    
-                    <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition">
-                        <input 
-                            type="checkbox" 
-                            name="fideicomisario" 
-                            value="1"
-                            <?php echo getFieldValue('fideicomisario', $cliente, []) ? 'checked' : ''; ?>
-                            class="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                        >
-                        <div class="ml-3">
-                            <p class="font-medium text-gray-800">Fideicomisario</p>
-                            <p class="text-xs text-gray-600">Es beneficiario de algún fideicomiso</p>
-                        </div>
-                    </label>
+     <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition">
+        <input type="hidden" name="fideicomitente" value="0">
+            <input 
+                type="checkbox" 
+                name="fideicomitente" 
+                value="1"
+                <?php echo getFieldValue('fideicomitente', $cliente, []) ? 'checked' : ''; ?>
+                class="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+            >
+            <div class="ml-3">
+                <p class="font-medium text-gray-800">Fideicomitente</p>
+                <p class="text-xs text-gray-600">Es fideicomitente en algún fideicomiso</p>
+            </div>
+     </label>
+    
+     <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition">
+        <input type="hidden" name="fideicomisario" value="0">
+        <input 
+            type="checkbox" 
+            name="fideicomisario" 
+            value="1"
+            <?php echo getFieldValue('fideicomisario', $cliente, []) ? 'checked' : ''; ?>
+            class="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+        >
+        <div class="ml-3">
+            <p class="font-medium text-gray-800">Fideicomisario</p>
+            <p class="text-xs text-gray-600">Es beneficiario de algún fideicomiso</p>
+        </div>
+     </label>
                 </div>
                 
                 <!-- Estado del Cliente -->
@@ -684,6 +685,113 @@ function getFieldValue($fieldName, $cliente, $formData, $default = '') {
                     </div>
                 </div>
                 
+                <!-- Sección de documentos -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                        <i class="fas fa-file-upload text-blue-600"></i>
+                        Documentos Fiscales
+                    </h3>
+                    
+                    <div 
+                        x-data="{ isDragging: false }"
+                        @dragover.prevent="isDragging = true"
+                        @dragleave.prevent="isDragging = false"
+                        @drop.prevent="isDragging = false; handleFileDrop($event)"
+                        :class="isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300'"
+                        class="border-2 border-dashed rounded-lg p-6 text-center transition"
+                    >
+                        <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-3"></i>
+                        <p class="text-gray-600 mb-2">Arrastra archivos aquí o</p>
+                        <label class="inline-block">
+                        <input 
+                            type="file" 
+                            name="documentos_fiscales[]" 
+                            multiple
+                            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                            @change="handleFileSelect($event)"
+                            class="hidden"
+                        >
+                            <span class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition inline-flex items-center gap-2">
+                                <i class="fas fa-file-upload"></i>
+                                Seleccionar Archivos
+                            </span>
+                        </label>
+                        <p class="text-xs text-gray-500 mt-2">
+                            PDF, JPG, PNG, DOC, DOCX (Máx. 10MB por archivo)
+                        </p>
+                    </div>
+                    
+                    <!-- Archivos seleccionados -->
+                    <div x-show="selectedFiles.length > 0" class="mt-4">
+                        <h4 class="font-medium text-gray-800 mb-2">Archivos para subir:</h4>
+                        <div class="space-y-2">
+                            <template x-for="(file, index) in selectedFiles" :key="index">
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-file text-blue-600"></i>
+                                        <span x-text="file.name" class="text-sm"></span>
+                                        <span x-text="formatFileSize(file.size)" class="text-xs text-gray-500"></span>
+                                    </div>
+                                    <button 
+                                        type="button"
+                                        @click="removeFile(index)"
+                                        class="text-red-500 hover:text-red-700"
+                                    >
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    
+                    <!-- Documentos existentes -->
+                    <?php if ($isEdit): ?>
+                        <?php 
+                        $documentos = $clienteManager->getClienteDocumentos($id);
+                        if (!empty($documentos)): 
+                        ?>
+                        <div class="mt-6">
+                            <h4 class="font-medium text-gray-800 mb-3">Documentos guardados:</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <?php foreach ($documentos as $doc): ?>
+                                <div class="border border-gray-200 rounded-lg p-3 hover:shadow-md transition flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fas fa-file-pdf text-2xl text-red-600"></i>
+                                        <div>
+                                            <p class="font-medium text-sm text-gray-800 truncate" style="max-width: 200px;">
+                                                <?php echo htmlspecialchars($doc['filename']); ?>
+                                            </p>
+                                            <p class="text-xs text-gray-500">
+                                                <?php echo date('d/m/Y H:i', strtotime($doc['fecha_upload'])); ?>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <a 
+                                            href="modules/clientes/download.php?id=<?php echo $doc['id']; ?>"
+                                            target="_blank"
+                                            class="text-blue-600 hover:text-blue-800"
+                                            title="Descargar"
+                                        >
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                        <button 
+                                            type="button"
+                                            @click="deleteDocument(<?php echo $doc['id']; ?>)"
+                                            class="text-red-500 hover:text-red-700"
+                                            title="Eliminar"
+                                        >
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </div>
+
             </div>
         </div>
         
@@ -706,14 +814,14 @@ function getFieldValue($fieldName, $cliente, $formData, $default = '') {
                     <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
                     <p class="text-gray-600 mb-2">Arrastra y suelta archivos aquí o</p>
                     <label class="inline-block">
-                        <input 
-                            type="file" 
-                            name="documentos[]" 
-                            multiple
-                            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                            @change="handleFileSelect($event)"
-                            class="hidden"
-                        >
+                    <input 
+                        type="file" 
+                        name="documentos[]" 
+                        multiple
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                        @change="handleFileSelect($event)"
+                        class="hidden"
+                    >
                         <span class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition">
                             Seleccionar Archivos
                         </span>
@@ -1015,7 +1123,7 @@ function clienteFormController(isEdit, clienteId) {
             formData.append('tipo_persona', this.tipoPersona);
             
             try {
-                const response = await fetch('modules/clientes/accion.php', {
+                const response = await fetch('modules/clientes/action.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -1042,71 +1150,73 @@ function clienteFormController(isEdit, clienteId) {
         },
         
         // Manejo de archivos
-        handleFileDrop(event) {
-            const files = Array.from(event.dataTransfer.files);
-            this.addFiles(files);
-        },
+        // Manejo de archivos
+handleFileDrop(event) {
+    const files = Array.from(event.dataTransfer.files);
+    this.addFiles(files, event.target);
+},
+
+handleFileSelect(event) {
+    const files = Array.from(event.target.files);
+    this.addFiles(files, event.target);
+},
+
+addFiles(files, inputElement) {
+    const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 
+                      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    
+    const validFiles = [];
+    
+    files.forEach(file => {
+        if (!validTypes.includes(file.type)) {
+            this.showAlert('warning', 'Archivo no permitido', `${file.name} no es un tipo de archivo válido`);
+            return;
+        }
         
-        handleFileSelect(event) {
-            const files = Array.from(event.target.files);
-            this.addFiles(files);
-        },
+        if (file.size > 10 * 1024 * 1024) { // 10MB
+            this.showAlert('warning', 'Archivo muy grande', `${file.name} excede el límite de 10MB`);
+            return;
+        }
         
-        addFiles(files) {
-            const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 
-                              'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-            
-            files.forEach(file => {
-                if (!validTypes.includes(file.type)) {
-                    this.showAlert('warning', 'Archivo no permitido', `${file.name} no es un tipo de archivo válido`);
-                    return;
-                }
-                
-                if (file.size > 10 * 1024 * 1024) { // 10MB
-                    this.showAlert('warning', 'Archivo muy grande', `${file.name} excede el límite de 10MB`);
-                    return;
-                }
-                
-                this.selectedFiles.push(file);
+        validFiles.push(file);
+        this.selectedFiles.push(file);
+    });
+    
+    // CRÍTICO: Actualizar el input file con los archivos válidos
+    if (validFiles.length > 0 && inputElement) {
+        const dataTransfer = new DataTransfer();
+        
+        // Agregar archivos existentes del input
+        if (inputElement.files) {
+            Array.from(inputElement.files).forEach(file => {
+                dataTransfer.items.add(file);
             });
-        },
+        }
         
-        removeFile(index) {
-            this.selectedFiles.splice(index, 1);
-        },
+        // Agregar los nuevos archivos válidos
+        validFiles.forEach(file => {
+            dataTransfer.items.add(file);
+        });
         
-        formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-        },
+        inputElement.files = dataTransfer.files;
+    }
+},
+
+removeFile(index) {
+    this.selectedFiles.splice(index, 1);
+    
+    // CRÍTICO: Actualizar el input file también
+    const fileInput = document.querySelector('input[name="documentos[]"][type="file"]');
+    if (fileInput) {
+        const dataTransfer = new DataTransfer();
         
-        async deleteDocument(docId) {
-            if (!confirm('¿Estás seguro de eliminar este documento?')) return;
-            
-            try {
-                const response = await fetch('modules/clientes/accion.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: `action=delete_document&doc_id=${docId}`
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    location.reload();
-                } else {
-                    this.showAlert('error', 'Error', result.message);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                this.showAlert('error', 'Error', 'No se pudo eliminar el documento');
-            }
-        },
+        this.selectedFiles.forEach(file => {
+            dataTransfer.items.add(file);
+        });
+        
+        fileInput.files = dataTransfer.files;
+    }
+},
         
         // Validación del formulario
         validateForm(e) {

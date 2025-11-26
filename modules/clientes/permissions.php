@@ -335,7 +335,8 @@ class ClientePermissions {
      */
     public function getPermissionDeniedMessage($permission = null) {
         if ($permission && isset($CLIENTE_PERMISSIONS[$permission])) {
-            return "No tienes permiso para: " . $CLIENTE_PERMISSIONS[$permission]['description'];
+            return "No tienes permiso para: " . $CLIENTE_PERMISSIONS[$permission]['name'];
+
         }
         return "No tienes permiso para realizar esta acción";
     }

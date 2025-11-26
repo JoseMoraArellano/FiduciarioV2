@@ -299,7 +299,7 @@ $canViewDocs = $isAdmin || $session->hasPermission('catalogos', 'documents', 'cl
                         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
                     >
                         <i class="fas fa-plus"></i>
-                        + Nuevo Cliente
+                        Nuevo Cliente
                     </a>
                     <?php endif; ?>
                 </div>
