@@ -96,10 +96,6 @@ switch ($action) {
     // GUARDAR CLIENTE (CREAR/EDITAR)
     // ========================================
     case 'save':
-        // === DIAGNÓSTICO ===
-        error_log("=== DEBUG GUARDAR CLIENTE ===");
-        error_log("POST recibido: " . print_r($_POST, true));
-        error_log("FILES recibido: " . print_r($_FILES, true));
 
         $id = (int)($_POST['id'] ?? 0);
 
@@ -167,11 +163,11 @@ switch ($action) {
             $totalArchivosSubidos = 0;
 
             // Procesar archivos del tab Documentos
-            if (!empty($_FILES['documentos']['name'][0])) {
+            if (!empty($_FILES['documentos_fiscales']['name'][0])) {
                 error_log("Procesando archivos del tab Documentos");
                 $resultDocs = $clientesManager->procesarArchivosSubidos(
                     $clienteId,
-                    $_FILES['documentos'],
+                    $_FILES['documentos_fiscales'],
                     'general'
                 );
 
@@ -187,29 +183,6 @@ switch ($action) {
                 }
             } else {
                 error_log("No hay archivos en documentos[]");
-            }
-
-            // Procesar archivos del tab Datos Fiscales
-            if (!empty($_FILES['documentos_fiscales']['name'][0])) {
-                error_log("Procesando archivos del tab Datos Fiscales");
-                $resultFiscales = $clientesManager->procesarArchivosSubidos(
-                    $clienteId,
-                    $_FILES['documentos_fiscales'],
-                    'fiscal'
-                );
-
-                error_log("Resultado documentos fiscales: " . print_r($resultFiscales, true));
-
-                if ($resultFiscales['total_subidos'] > 0) {
-                    $mensajesArchivos[] = $resultFiscales['message'];
-                    $totalArchivosSubidos += $resultFiscales['total_subidos'];
-                }
-
-                if (!empty($resultFiscales['errores'])) {
-                    error_log("Errores en documentos fiscales: " . print_r($resultFiscales['errores'], true));
-                }
-            } else {
-                error_log("No hay archivos en documentos_fiscales[]");
             }
 
             // Preparar mensaje de éxito
@@ -468,6 +441,32 @@ switch ($action) {
         }
         break;
 
+    // ========================================
+    // ELIMINAR DOCUMENTO
+        case 'delete_document':
+        $docId = intval($_POST['document_id'] ?? 0);
+
+        if ($docId <= 0) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'ID de documento inválido'
+            ]);
+            exit;
+        }
+
+        $result = $clientesManager->deleteDocumento($docId);
+
+        if ($result) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'No se pudo eliminar el documento'
+            ]);
+        }
+        exit;
+
+       break;
     // ========================================
     // EXPORTAR A CSV
     // ========================================

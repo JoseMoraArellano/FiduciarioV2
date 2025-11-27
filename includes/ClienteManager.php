@@ -1443,6 +1443,7 @@ class ClienteManager
             ];
         }
     }
+    
     /**
      * Obtener actividad reciente
      */
@@ -1488,4 +1489,5 @@ class ClienteManager
             ];
         }
     }
+    
 }
