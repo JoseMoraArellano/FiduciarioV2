@@ -3,8 +3,7 @@
  * Incluye: validación, mostrar/ocultar contraseña, efectos visuales
  */
 
-document.addEventListener('DOMContentLoaded', function() {
-    
+document.addEventListener('DOMContentLoaded', function() {    
     // Elementos del DOM
     const loginForm = document.getElementById('loginForm');
     const identifierInput = document.getElementById('identifier');
@@ -350,10 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const isDevelopment = window.location.hostname === 'localhost' || 
                           window.location.hostname === '127.0.0.1';
     
-    if (isDevelopment) {
-        console.log('🔐 Login form initialized');
-        console.log('📧 Remembered user:', rememberedUser || 'None');
-        
+    if (isDevelopment) {       
         // Agregar helper de desarrollo
         window.loginDebug = {
             fillTestUser: () => {
@@ -367,7 +363,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         };
         
-        console.log('💡 Debug helpers available: loginDebug.fillTestUser(), loginDebug.clearRemembered()');
     }
     
 });

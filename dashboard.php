@@ -10,7 +10,7 @@ require_once 'includes/Database.php';
 require_once 'includes/Session.php';
 require_once 'includes/Permissions.php';
 require_once 'includes/Auth.php';
-require_once 'includes/Sidebar.php'; // ← NUEVA CLASE
+require_once 'includes/Sidebar.php';
 
 // Iniciar sesión
 $session = new Session();
@@ -89,6 +89,8 @@ $menuStats = $sidebar->getMenuStats();
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Alpine.js -->
+     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     <!-- Font Awesome -->

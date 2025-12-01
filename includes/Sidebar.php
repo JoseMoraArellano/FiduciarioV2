@@ -18,8 +18,10 @@ class Sidebar {
      * @param int $userId - ID del usuario actual
      * @param string $currentPage - Página actual para resaltar en el menú
      * @param bool $isAdmin - Si el usuario es administrador
+     * @param string $modParam - Valor del parámetro ?mod= (ej: 'tiie')
+     * @return array|false - Datos del módulo o false si no existe
      */
-public function __construct($userPermissions, $userId, $currentPage = '', $isAdmin = false) {
+ public function __construct($userPermissions, $userId, $currentPage = '', $isAdmin = false) {
     $this->db = Database::getInstance()->getConnection();
     $this->userPermissions = $userPermissions;
     $this->userId = $userId;
@@ -27,7 +29,7 @@ public function __construct($userPermissions, $userId, $currentPage = '', $isAdm
     $this->isUserAdmin = $isAdmin;
     
     $this->loadMenuFromDatabase();
-}
+ }
     
     /**
      * Carga la estructura del menú desde la base de datos
@@ -367,10 +369,10 @@ public function __construct($userPermissions, $userId, $currentPage = '', $isAdm
             <!-- Header -->
             <div class="p-4 border-b border-gray-700 flex items-center justify-between">
                 <div x-show="sidebarOpen" class="flex items-center gap-3">
-                    <a href="dashboard.php" class="flex items-center gap-3">
+                    <a href="../../dashboard.php" class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
                        <!-- <i class="fas fa-briefcase text-xl"></i>-->
-                        <img href="dashboard.php" src="img/Fiduciapalomas.jpg"  alt="Logo" class="w-12 h-12">
+                        <img href="../../dashboard.php" src="../../img/Fiduciapalomas.jpg"  alt="Logo" class="w-12 h-12">
                         </a>
                     </div>
                     <div>
@@ -491,5 +493,44 @@ public function __construct($userPermissions, $userId, $currentPage = '', $isAdm
         
         return $stats;
     }
+    public function getModuleByModParam($modParam) {
+    try {
+        $sql = "
+            SELECT 
+                id,
+                label,
+                icon,
+                url,
+                modulo,
+                permiso_requerido,
+                subpermiso_requerido
+            FROM t_menu
+            WHERE url LIKE :mod_pattern
+            AND activo = TRUE
+            LIMIT 1
+        ";
+        
+        $stmt = $this->db->prepare($sql);
+        // Buscar URLs que contengan exactamente "mod=tiie" (con & o al final)
+        $pattern = "%mod={$modParam}&%";
+        $patternEnd = "%mod={$modParam}";
+        
+        // Intentar con & primero
+        $stmt->execute(['mod_pattern' => $pattern]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Si no encuentra, buscar al final de la URL
+        if (!$result) {
+            $stmt->execute(['mod_pattern' => $patternEnd]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+        
+        return $result;
+        
+    } catch (PDOException $e) {
+        error_log("Error validating module: " . $e->getMessage());
+        return false;
+    }
+ }
 }
 ?>

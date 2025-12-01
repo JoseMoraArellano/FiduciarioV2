@@ -67,7 +67,10 @@ class Session {
         
         return true;
     }
-    
+    /**
+ * Obtiene el nombre de usuario (o email si no existe)
+ */
+
     /**
      * Inicia sesión de usuario
      */
@@ -139,6 +142,7 @@ class Session {
     /**
      * Verifica si el usuario tiene un permiso específico
      */
+
     public function hasPermission($modulo, $permiso, $subpermiso = null) {
         if (!isset($_SESSION['permissions']) || empty($_SESSION['permissions'])) {
             return false;
@@ -154,14 +158,16 @@ class Session {
         
         return false;
     }
-    
+
     /**
      * Verifica si es administrador
      */
 public function isAdmin() {
     return isset($_SESSION['admin']) && $_SESSION['admin'] == 1;
 }
-    
+public function getUsername() {
+    return $_SESSION['name'] ?? $_SESSION['email'] ?? 'Sistema';
+}    
     /**
      * Cierra la sesión del usuario
      */

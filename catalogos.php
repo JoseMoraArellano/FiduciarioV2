@@ -5,6 +5,8 @@
  * Verifica permisos antes de mostrar contenido
  */
 
+
+
 // Cargar configuración y clases
 require_once 'config.php';
 require_once 'includes/Database.php';
@@ -12,6 +14,7 @@ require_once 'includes/Session.php';
 require_once 'includes/Permissions.php';
 require_once 'includes/Auth.php';
 require_once 'includes/Sidebar.php';
+
 
 // Iniciar sesión
 $session = new Session();
@@ -26,34 +29,38 @@ if (!$session->isLoggedIn()) {
 $userData = $session->getUserData();
 $userId = $session->getUserId();
 $isAdmin = $session->isAdmin();
+//$isAdmin= true;
+//$userPermissions = $userData['permissions'] ?? [];
 $userPermissions = $userData['permissions'] ?? [];
+
+// Crear instancia del Sidebar (MOVER AQUÍ desde la línea 120)
+$sidebar = new Sidebar($userPermissions, $userId, 'catalogos.php', $isAdmin);
 
 // Obtener módulo solicitado
 $mod = $_GET['mod'] ?? '';
 $action = $_GET['action'] ?? 'list';
 
-// Validar módulo
-$allowedModules = [
-    'honorarios',
-    'patrimonios',
-    'tiie',
-    'inpc',
-    'udis',
-    'tdc',
-    'cpp',
-    'servicios',
-    'usuarios',
-    'grupos',
-    'clientes'
-];
+// Validar que el módulo exista en t_menu
+$moduleData = $sidebar->getModuleByModParam($mod);
+// Obtener módulo solicitado
+//$mod = $_GET['mod'] ?? '';
+//$action = $_GET['action'] ?? 'list';
 
-if (!in_array($mod, $allowedModules)) {
+// Validar que el módulo exista en t_menu
+// $moduleData = $sidebar->getModuleByModParam($mod);
+
+if (!$moduleData) {
+    // Módulo no existe o está inactivo
     header('Location: dashboard.php');
     exit;
 }
 
 // Verificar permiso de lectura del módulo
-if (!$isAdmin && !$session->hasPermission('catalogos', 'lire', $mod)) {
+if (!$isAdmin && !$session->hasPermission(
+    $moduleData['modulo'],
+    $moduleData['permiso_requerido'],
+    $moduleData['subpermiso_requerido']
+)) {
     die('
         <div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;">
             <div style="text-align:center;">
@@ -66,34 +73,18 @@ if (!$isAdmin && !$session->hasPermission('catalogos', 'lire', $mod)) {
     ');
 }
 
+$projectRoot = __DIR__ . '/';
+
 // Definir metadata de módulos
-$modulesMetadata = [
-    'usuarios' => [
-        'title' => 'Gestión de Usuarios',
-        'icon' => 'fa-users-cog',
-        'description' => 'Administra usuarios del sistema, permisos y grupos',
-        'path' => 'modules/usuarios/'
-    ],
-    'grupos' => [
-        'title' => 'Gestión de Grupos',
-        'icon' => 'fa-users-cog',
-        'description' => 'Administra grupos de usuarios y sus permisos',
-        'path' => 'modules/grupos/'
-    ],
-    'honorarios' => [
-        'title' => 'Honorarios',
-        'icon' => 'fa-money-bill-wave',
-        'description' => 'Catálogo de honorarios',
-        'path' => 'modules/honorarios/'
-    ],
-    // ... otros módulos (agregar según necesites)
+// Título, ícono y descripción para cada módulo
+
+// Construir metadata del módulo desde la BD
+$currentModule = [
+    'title' => $moduleData['label'],
+    'icon' => $moduleData['icon'],
+    'description' => 'Gestión de ' . $moduleData['label'],
+    'path' => 'modules/' . $mod . '/'
 ];
-
-$currentModule = $modulesMetadata[$mod] ?? null;
-
-if (!$currentModule) {
-    die('Módulo no configurado');
-}
 
 // Cargar el archivo del módulo según la acción
 $modulePath = $currentModule['path'];
@@ -101,6 +92,7 @@ $actionFile = '';
 
 switch ($action) {
     case 'list':
+    case 'view':
         $actionFile = 'list.php';
         break;
     case 'create':
@@ -117,20 +109,43 @@ switch ($action) {
     case 'toggle-status':
     case 'duplicate':
     case 'save':
-        $actionFile = 'actions.php';
+    case 'verify_qsq':
+    case 'verify_qsq_single':
+    case 'export':
+        // Para acciones AJAX, usar el action.php
+        $actionFile = 'accion.php';
         break;
     default:
         $actionFile = 'list.php';
 }
 
 $fullPath = $modulePath . $actionFile;
-
+/*
 if (!file_exists($fullPath)) {
     die("Archivo no encontrado: {$fullPath}");
 }
+*/
+// Verificar si el archivo existe
+if (!file_exists($fullPath)) {
+    // Si no existe el archivo específico, intentar con list.php
+    if (file_exists($modulePath . 'list.php')) {
+        $fullPath = $modulePath . 'list.php';
+    } else {
+        die("
+            <div style='display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;'>
+                <div style='text-align:center;'>
+                    <h1 style='font-size:4rem;margin:0;color:#ef4444;'>404</h1>
+                    <p style='font-size:1.5rem;color:#6b7280;'>Archivo no encontrado</p>
+                    <p style='color:#9ca3af;'>No se pudo cargar: {$fullPath}</p>
+                    <a href='catalogos.php?mod={$mod}&action=list' style='color:#3b82f6;text-decoration:none;'>← Volver a la lista</a>
+                </div>
+            </div>
+        ");
+    }
+}
 
 // Crear instancia del Sidebar
-$sidebar = new Sidebar($userPermissions, $userId, 'catalogos.php', $isAdmin);
+// $sidebar = new Sidebar($userPermissions, $userId, 'catalogos.php', $isAdmin);
 
 ?>
 <!DOCTYPE html>
@@ -144,6 +159,8 @@ $sidebar = new Sidebar($userPermissions, $userId, 'catalogos.php', $isAdmin);
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Alpine.js -->
+     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     <!-- Font Awesome -->
@@ -152,7 +169,6 @@ $sidebar = new Sidebar($userPermissions, $userId, 'catalogos.php', $isAdmin);
     <!-- CSS personalizados -->
     <link rel="stylesheet" href="./public/css/dashboard.css">
     <link rel="stylesheet" href="./public/css/sidebar.css">
-    <link rel="stylesheet" href="./public/css/usuarios.css">
     <link rel="icon" type="image/x-icon" href="./img/afiducialogo.png">
 </head>
 <body class="bg-gray-100">
@@ -182,15 +198,66 @@ $sidebar = new Sidebar($userPermissions, $userId, 'catalogos.php', $isAdmin);
                             </div>
                         </div>
                         
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-4">
+                            <!-- Breadcrumb para navegación -->
+                            <nav class="flex items-center text-sm text-gray-500">
+                                <a href="dashboard.php" class="hover:text-gray-700">Dashboard</a>
+                                <span class="mx-2">/</span>
+                                <a href="catalogos.php?mod=<?php echo $mod; ?>&action=list" class="hover:text-gray-700">
+                                    <?php echo htmlspecialchars($currentModule['title']); ?>
+                                </a>
+                                <?php if ($action !== 'list'): ?>
+                                <span class="mx-2">/</span>
+                                <span class="text-gray-700 capitalize">
+                                    <?php 
+                                    $actionTitles = [
+                                        'create' => 'Nuevo',
+                                        'edit' => 'Editar',
+                                        'view' => 'Ver',
+                                        'permissions' => 'Permisos'
+                                    ];
+                                    echo $actionTitles[$action] ?? ucfirst($action);
+                                    ?>
+                                </span>
+                                <?php endif; ?>
+                            </nav>
+                            
                             <span class="text-sm text-gray-600">
                                 <i class="fas fa-user mr-1"></i>
                                 <?php echo htmlspecialchars($userData['name']); ?>
+                                <? "hola" ?>
                             </span>
                         </div>
                     </div>
                 </div>
             </header>
+
+            <!-- Mensajes de sesión -->
+            <?php if (isset($_SESSION['success'])): ?>
+            <div class="mx-8 mt-4">
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                    <strong class="font-bold">Éxito!</strong>
+                    <span class="block sm:inline"><?php echo htmlspecialchars($_SESSION['success']); ?></span>
+                    <button class="absolute top-0 right-0 px-4 py-3" onclick="this.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <?php unset($_SESSION['success']); ?>
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['error'])): ?>
+            <div class="mx-8 mt-4">
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                    <strong class="font-bold">Error!</strong>
+                    <span class="block sm:inline"><?php echo htmlspecialchars($_SESSION['error']); ?></span>
+                    <button class="absolute top-0 right-0 px-4 py-3" onclick="this.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <?php unset($_SESSION['error']); ?>
+            <?php endif; ?>
 
             <!-- Contenido del módulo -->
             <div class="p-8">
@@ -205,7 +272,23 @@ $sidebar = new Sidebar($userPermissions, $userId, 'catalogos.php', $isAdmin);
     </div>
     
     <!-- Scripts -->
-    <script src="./public/js/sidebar.js"></script>
-    <script src="./public/js/usuarios.js"></script>
+    
+    <!-- Script para manejar mensajes flash -->
+    <script>
+        // Auto-ocultar mensajes después de 5 segundos
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('[role="alert"]');
+                alerts.forEach(alert => {
+                    alert.style.transition = 'opacity 0.5s ease';
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 500);
+                });
+            }, 5000);
+        });
+    </script>
+        </style> 
+        <script src="../../public/js/sidebar.js"></script>
+    <script src=".../../public/js/dashboard.js"></script>
 </body>
 </html>

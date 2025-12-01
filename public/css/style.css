@@ -1,0 +1,24 @@
+    .cliente-alto-riesgo {
+            border-left: 4px solid #dc2626;
+            background-color: #fef2f2;
+        }
+        
+        .cliente-alto-riesgo:hover {
+            background-color: #fee2e2;
+        }
+        
+        /* Loading states para botones */
+        .btn-loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        /* Animaciones */
+        @keyframes pulse-alert {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .animate-pulse-alert {
+            animation: pulse-alert 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }

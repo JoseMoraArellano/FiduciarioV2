@@ -5,11 +5,7 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     
-    // ========================================
-    // Inicialización
-    // ========================================
-    
-    console.log('🚀 Dashboard initialized');
+
     
     // ========================================
     // Reloj en tiempo real
@@ -75,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function refreshStats() {
         // Aquí harías una llamada AJAX para obtener stats actualizadas
         // Por ahora solo mostramos un mensaje en consola
-        console.log('📊 Refreshing stats...');
+
         
         // Ejemplo de cómo sería:
         /*
@@ -104,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function checkNotifications() {
         // Aquí harías una llamada AJAX para verificar nuevas notificaciones
-        console.log('🔔 Checking for notifications...');
+//        console.log('🔔 Checking for notifications...');
         
         // Ejemplo:
         /*
@@ -264,7 +260,6 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch('api/refresh-session.php')
                 .then(() => {
                     resetSessionTimer();
-                    console.log('✅ Session refreshed');
                 })
                 .catch(error => {
                     console.error('Error refreshing session:', error);
@@ -302,16 +297,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Aquí implementarías un modal de búsqueda rápida
     }
     
-    // ========================================
-    // Gráficos y visualizaciones (preparado)
-    // ========================================
-    
-    function initCharts() {
-        // Aquí inicializarías librerías como Chart.js si las usas
-        console.log('📈 Charts ready to be initialized');
-    }
-    
-    initCharts();
     
     // ========================================
     // Export data functions
@@ -368,7 +353,7 @@ document.addEventListener('DOMContentLoaded', function() {
             resetSession: resetSessionTimer
         };
         
-        console.log('💡 Debug helpers available:', Object.keys(window.dashboardDebug));
+//        console.log('💡 Debug helpers available:', Object.keys(window.dashboardDebug));
     }
     
     // ========================================
@@ -384,7 +369,7 @@ document.addEventListener('DOMContentLoaded', function() {
         */
     }
     
-    console.log('✅ Dashboard fully loaded');
+//    console.log('✅ Dashboard fully loaded');
     
 });
 
