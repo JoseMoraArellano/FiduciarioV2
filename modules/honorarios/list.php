@@ -143,34 +143,76 @@ try {
         <?php endif; ?>
     </div>
 
-    <!-- Modal (Alpine) -->
-    <div x-show="modal.open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="absolute inset-0 bg-black/40" @click="closeModal()"></div>
-        <div class="bg-white rounded-lg shadow-lg w-full max-w-xl z-50 overflow-hidden">
-            <div class="p-4 border-b flex items-center justify-between">
-                <h3 class="text-lg font-medium" x-text="modal.title"></h3>
-                <button @click="closeModal()" class="text-gray-500 hover:text-gray-800"><i class="fas fa-times"></i></button>
+<!-- Modal (Alpine) -->
+<div x-show="modal.open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/40" @click="closeModal()"></div>
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-xl z-50 overflow-hidden">
+        <div class="p-4 border-b flex items-center justify-between">
+            <h3 class="text-lg font-medium" x-text="modal.title"></h3>
+            <button @click="closeModal()" class="text-gray-500 hover:text-gray-800">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form @submit.prevent="submitForm" class="p-4 space-y-4">
+            <input type="hidden" name="id" x-model="form.id">
+
+            <!-- Campo Plazo -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Plazo (días) *</label>
+                <input 
+                    type="number" 
+                    step="1" 
+                    min="1" 
+                    x-model="form.plazo" 
+                    required 
+                    class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Ejemplo: 30, 60, 90">
+                <p class="text-xs text-gray-500 mt-1">Ingrese el plazo en días</p>
             </div>
 
-            <form @submit.prevent="submitForm" class="p-4 space-y-4">
-                <input type="hidden" name="id" x-model="form.id">
+            <!-- Campo Nombre -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Nombre / Descripción *</label>
+                <input 
+                    type="text" 
+                    x-model="form.nombre" 
+                    required 
+                    maxlength="255"
+                    class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Ejemplo: Pago a 30 días">
+                <p class="text-xs text-gray-500 mt-1">Descripción del periodo de pago</p>
+            </div>
 
+            <!-- Campo Activo -->
+            <div class="flex items-center gap-3">
+                <label class="flex items-center cursor-pointer">
+                    <input 
+                        type="checkbox" 
+                        x-model="form.activo" 
+                        class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                    <span class="ml-2 text-sm font-medium text-gray-700">Activo</span>
+                </label>
+                <p class="text-xs text-gray-500">Marque si el periodo está activo</p>
+            </div>
 
-
-                <div>
-                    <label class="block text-sm text-gray-600">Indice *</label>
-                    <input type="number" step="0.0001" min="0" max="300" x-model="form.indice" required class="mt-1 w-full px-3 py-2 border rounded-lg">
-                    <p class="text-xs text-gray-500 mt-1">Ingrese el valor</p>
-                </div>
-            
-
-                <div class="flex justify-end gap-2">
-                    <button type="button" @click="closeModal()" class="px-4 py-2 bg-gray-200 rounded">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded" x-text="modal.actionText"></button>
-                </div>
-            </form>
-        </div>
+            <!-- Botones -->
+            <div class="flex justify-end gap-2 pt-4 border-t">
+                <button 
+                    type="button" 
+                    @click="closeModal()" 
+                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                    Cancelar
+                </button>
+                <button 
+                    type="submit" 
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                    x-text="modal.actionText">
+                </button>
+            </div>
+        </form>
     </div>
+</div>
 
 </div>
 
@@ -181,17 +223,17 @@ function honoController() {
         registros: <?= json_encode(array_map(function($r){
             // asegurar tipos y formato ISO para fechas
             return [
-                'id' => $r['id'],
-                'plazo' => floatval($r['plazo ']),
-                'activo' => !empty($r['activo']) ? 1 : 0,
-                'nombre' => $r['nombre'] ?? $r['nombre'] ?? '',
+            'id' => $r['id'],
+            'plazo' => floatval($r['plazo']),
+            'activo' => !empty($r['activo']) ? 1 : 0,
+            'nombre' => $r['nombre'] ?? '',                     
             ];
         }, $registros)); ?>,
 
         sort: { column: 'id', desc: true },
 
         modal: { open: false, title: '', actionText: '' },
-        form: { id: '',  plazo: '', nombre : '', activo: 1 },
+        form: { id: '', plazo: '', nombre: '', activo: true },
 
         init() {
         },
@@ -267,7 +309,7 @@ function honoController() {
             this.modal.open = true;
             this.modal.title = 'Nuevo Honorario';
             this.modal.actionText = 'Guardar';
-            this.form = { id: '', plazo: '', nombre : '' };
+            this.form = { id: '', plazo: '', nombre: '', activo: true }; 
         },
 
         openEditModal(id) {
@@ -300,10 +342,9 @@ function honoController() {
             const body = new URLSearchParams();
             body.append('action', action);
             if (this.form.id) body.append('id', this.form.id);
-            body.append('fecha', this.form.fecha);
-            body.append('indice', this.form.indice);
-//    console.log('Datos enviados:', Object.fromEntries(body));
-//    console.log('Form original:', this.form);            
+            body.append('plazo', this.form.plazo);
+            body.append('nombre', this.form.nombre);
+            body.append('activo', this.form.activo ? 1 : 0);
 
             fetch('modules/honorarios/actions.php', {
                 method: 'POST',
@@ -325,25 +366,30 @@ function honoController() {
                 alert('Error en la petición.');
             });
         },
-
-        confirmDelete(id) {
-            if (!confirm('¿Está seguro de eliminar este registro?')) return;
-            const body = new URLSearchParams();
-            body.append('action', 'delete');
-            body.append('id', id);
-            fetch('modules/honorarios/actions.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: body.toString()
-            }).then(r => r.json())
-              .then(resp => {
-                  if (resp.success) location.reload();
-                  else alert(resp.message || 'No se pudo eliminar.');
-              }).catch(err => {
-                  console.error(err);
-                  alert('Error en la petición.');
-              });
-        },
+confirmDelete(id) {
+    console.log('ID a eliminar:', id);
+    if (!confirm('¿Está seguro de eliminar este registro?')) return;
+    
+    const body = new URLSearchParams();
+    body.append('action', 'delete');
+    body.append('id', id);
+    
+    console.log('Body a enviar:', body.toString());
+    
+    fetch('modules/honorarios/actions.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+    }).then(r => r.json())
+      .then(resp => {
+          console.log('Respuesta del servidor:', resp);
+          if (resp.success) location.reload();
+          else alert(resp.message || 'No se pudo eliminar.');
+      }).catch(err => {
+          console.error(err);
+          alert('Error en la petición.');
+      });
+}
     }
 }
 </script>

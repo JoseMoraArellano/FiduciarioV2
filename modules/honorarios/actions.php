@@ -30,9 +30,7 @@ switch ($action) {
         
         $plazo = $_POST['plazo'] ?? '';
         $nombre = $_POST['nombre'] ?? '';
-        $activo = isset($_POST['activo']) ? 1 : 0;
-//        $usuario = $_SESSION['username'] ?? 'sistema';
-//        $hora_insercion = date('H:i:s');
+         $activo = filter_var($_POST['activo'] ?? false, FILTER_VALIDATE_BOOLEAN);
         
         try {
         $stmtCheck = $db->prepare("SELECT COUNT(*) as total FROM t_cat_periodos WHERE plazo = ?");
@@ -49,7 +47,7 @@ switch ($action) {
             $stmt->execute([
                 $plazo,
                 $nombre,
-                $activo
+                 $activo ? 'true' : 'false'
             ]);                        
             
             $response['success'] = true;
@@ -70,7 +68,7 @@ switch ($action) {
         $id = $_POST['id'] ?? 0;
         $plazo = $_POST['plazo'] ?? '';
         $nombre = $_POST['nombre'] ?? '';
-        $activo = isset($_POST['activo']) ? 1 : 0;
+        $activo = filter_var($_POST['activo'] ?? false, FILTER_VALIDATE_BOOLEAN);
         
         try {
                 $stmtCheck = $db->prepare("SELECT COUNT(*) as total 
@@ -88,7 +86,12 @@ switch ($action) {
         
             
             $stmt = $db->prepare("UPDATE t_cat_periodos SET plazo = ?, nombre = ?, activo = ? WHERE id = ?");
-            $stmt->execute([$plazo, $nombre, $activo, $id]);
+                    $stmt->execute([
+            $plazo,
+            $nombre,
+            $activo ? 'true' : 'false',  // ✅ PostgreSQL booleano
+            $id
+        ]);
             
             $response['success'] = true;
             $response['message'] = 'Registro actualizado';
@@ -120,36 +123,31 @@ switch ($action) {
         exit;
         break;
         
-    case 'get':
-        $id = $_GET['id'] ?? 0;
-                
-        try {
-            $stmt = $db->prepare("SELECT * FROM t_cat_periodos WHERE id = ?");
-            $stmt->execute([$id]);
-            $data = $stmt->fetch(PDO::FETCH_ASSOC);            
-
-            /*
-            if (isset($data['fecha'])) {
-            
-                $data['fecha'] = date('Y-m-d', strtotime($data['fecha']));
-            }
-            */
-
-            if ($data) {
-                $response['success'] = true;
-                $response['data'] = $data;
-            } else {
-                $response['message'] = 'Registro no encontrado';
-            }
-        } catch (PDOException $e) {
-            $response['message'] = 'Error: ' . $e->getMessage();
-            error_log("GET - Error: " . $e->getMessage());
-        }
-        
-        header('Content-Type: application/json');
-        echo json_encode($response);
-        exit;
+case 'get':
+    if (!$canView && !$isAdmin) {
+        $response['message'] = 'Sin permisos para ver';
         break;
+    }
+    
+    $id = $_GET['id'] ?? '';
+    try {
+        $stmt = $db->prepare("SELECT * FROM t_cat_periodos WHERE id = ?");
+        $stmt->execute([$id]);
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($data) {
+            // ✅ Convierte el booleano de PostgreSQL a entero para JavaScript
+            $data['activo'] = ($data['activo'] === 't' || $data['activo'] === true || $data['activo'] === '1') ? 1 : 0;
+            
+            $response['success'] = true;
+            $response['data'] = $data;
+        } else {
+            $response['message'] = 'Registro no encontrado';
+        }
+    } catch (PDOException $e) {
+        $response['message'] = 'Error: ' . $e->getMessage();
+    }
+    break;
 }
 
 header('Content-Type: application/json');
