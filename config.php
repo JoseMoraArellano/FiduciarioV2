@@ -4,7 +4,7 @@
  */
 define('APP_NAME', 'Fiduciario');
 define('ROOT_PATH', __DIR__);
-define('DB_HOST', 'localhost');
+define('DB_HOST', '10.1.1.152');
 define('DB_PORT', '5432');
 define('DB_NAME', 'tes_db');
 define('DB_USER', 'postgres');
