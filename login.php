@@ -10,7 +10,7 @@ require_once 'includes/Session.php';
 require_once 'includes/Permissions.php';
 require_once 'includes/Auth.php';
 
-
+echo "tes";
 // Iniciar sesión
 $session = new Session();
 
