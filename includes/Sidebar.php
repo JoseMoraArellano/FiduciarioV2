@@ -50,10 +50,14 @@ class Sidebar {
                     subpermiso_requerido
                 FROM t_menu
                 WHERE activo = TRUE
-                ORDER BY 
-                    COALESCE(parent_id, id),
-                    orden,
-                    label
+ORDER BY 
+    CASE 
+        WHEN parent_id IS NULL THEN orden
+        ELSE (SELECT orden FROM t_menu p WHERE p.id = t_menu.parent_id)
+    END,
+    parent_id,
+    orden,
+    label
             ";
             
             $stmt = $this->db->query($sql);
