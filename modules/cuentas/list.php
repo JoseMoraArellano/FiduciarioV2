@@ -121,23 +121,23 @@ try {
                             <div class="flex items-center justify-center gap-2">ID <span x-show="sort.column === 'id'"><template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
                         </th>
                         <?php endif; ?>
-                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('nombre_categoria')">
-                            <div class="flex items-center justify-center gap-2">Categoría <span x-show="sort.column === 'nombre_categoria'"><template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
-                        </th>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('nombre_de_banco')">
                             <div class="flex items-center justify-center gap-2">Banco <span x-show="sort.column === 'nombre_de_banco'"><template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
                         </th>
+                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('nombre_categoria')">
+                            <div class="flex items-center justify-center gap-2">Categoría <span x-show="sort.column === 'nombre_categoria'"><template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
+                        </th>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('nombre_banxico')">
                             <div class="flex items-center justify-center gap-2">Banxico <span x-show="sort.column === 'nombre_banxico'"><template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
-                        </th>
-                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('nombre_fideicomiso')">
-                            <div class="flex items-center justify-center gap-2">Fideicomiso <span x-show="sort.column === 'nombre_fideicomiso'"><template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
                         </th>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('cuenta')">
                             <div class="flex items-center justify-center gap-2">Cuenta <span x-show="sort.column === 'cuenta'"><template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
                         </th>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('clabe')">
                             <div class="flex items-center justify-center gap-2">CLABE <span x-show="sort.column === 'clabe'"><template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
+                        </th>
+                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('nombre_fideicomiso')">
+                            <div class="flex items-center justify-center gap-2">Fideicomiso <span x-show="sort.column === 'nombre_fideicomiso'"><template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
                         </th>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('saldo_actual')">
                             <div class="flex items-center justify-center gap-2">Saldo <span x-show="sort.column === 'saldo_actual'"><template x-if="sort.desc"><i class="fas fa-sort-down"></i></template><template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template></span></div>
@@ -631,7 +631,9 @@ function cuentasController() {
 
                 const tdSaldo = document.createElement('td');
                 tdSaldo.className = 'px-4 py-3 text-sm text-gray-700 text-center';
-                tdSaldo.textContent = '+ ' + parseFloat(r.saldo_actual || 0).toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                const saldoNum = parseFloat(r.saldo_actual || 0);
+                const saldoFormateado = Math.abs(saldoNum).toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                tdSaldo.textContent = saldoNum < 0 ? `-$${saldoFormateado}` : `$${saldoFormateado}`;
                 tr.appendChild(tdSaldo);
 
                 const tdMoneda = document.createElement('td');
