@@ -580,7 +580,7 @@ function cuentasController() {
             this.renderRows();
         },
 
-        renderRows() {
+       renderRows() {
             const tbody = this.$refs.tbody;
             if (!tbody) return;
             tbody.innerHTML = '';
@@ -652,15 +652,28 @@ function cuentasController() {
 
                 const tdAcc = document.createElement('td');
                 tdAcc.className = 'px-4 py-3 text-center';
-                let buttonsHtml = '<div class="inline-flex gap-2">';
+                const divButtons = document.createElement('div');
+                divButtons.className = 'inline-flex gap-2';
+                
                 if (canEdit) {
-                    buttonsHtml += `<button onclick="document.querySelector('[x-data]').__x.$data.openEditModal(${r.id})" class="px-2 py-1 bg-yellow-400 text-white rounded hover:brightness-90"><i class="fas fa-edit"></i></button>`;
+                    const btnEdit = document.createElement('button');
+                    btnEdit.className = 'px-2 py-1 bg-yellow-400 text-white rounded hover:brightness-90';
+                    btnEdit.innerHTML = '<i class="fas fa-edit"></i>';
+                    btnEdit.setAttribute('title', 'Editar');
+                    btnEdit.addEventListener('click', () => this.openEditModal(r.id));
+                    divButtons.appendChild(btnEdit);
                 }
+                
                 if (canDelete) {
-                    buttonsHtml += `<button onclick="document.querySelector('[x-data]').__x.$data.confirmDelete(${r.id})" class="px-2 py-1 bg-red-500 text-white rounded hover:brightness-90"><i class="fas fa-trash"></i></button>`;
+                    const btnDelete = document.createElement('button');
+                    btnDelete.className = 'px-2 py-1 bg-red-500 text-white rounded hover:brightness-90';
+                    btnDelete.innerHTML = '<i class="fas fa-trash"></i>';
+                    btnDelete.setAttribute('title', 'Eliminar');
+                    btnDelete.addEventListener('click', () => this.confirmDelete(r.id));
+                    divButtons.appendChild(btnDelete);
                 }
-                buttonsHtml += '</div>';
-                tdAcc.innerHTML = buttonsHtml;
+                
+                tdAcc.appendChild(divButtons);
                 tr.appendChild(tdAcc);
 
                 tbody.appendChild(tr);
