@@ -233,16 +233,14 @@ $canViewDocs = $isAdmin || $session->hasPermission('catalogos', 'documents', 'cl
                         type="submit"
                         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
                     >
-                        <i class="fas fa-filter"></i>
-                        Aplicar Filtros
+                        <i class="fas fa-filter"></i> Filtrar
                     </button>
                     
                     <a 
                         href="catalogos.php?mod=clientes&action=list"
                         class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition flex items-center gap-2"
                     >
-                        <i class="fas fa-times"></i>
-                        Limpiar
+                        <i class="fas fa-eraser mr-1"></i> Limpiar filtros
                     </a>
                 </div>
                 

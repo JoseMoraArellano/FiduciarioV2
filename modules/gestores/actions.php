@@ -28,29 +28,51 @@ switch ($action) {
             break;
         }
 
-        $banco = $_POST['banco'] ?? '';
-        $clave = $_POST['clave'] ?? '';
-        $codigo = $_POST['codigo'] ?? '';
+        $nombres = mb_strtoupper(trim($_POST['nombres'] ?? ''), 'UTF-8');
+        $paterno = mb_strtoupper(trim($_POST['paterno'] ?? ''), 'UTF-8');
+        $materno = mb_strtoupper(trim($_POST['materno'] ?? ''), 'UTF-8');
+        $correo = trim($_POST['correo'] ?? '');
+        $ext = trim($_POST['ext'] ?? '');
+        $firmante = filter_var($_POST['firmante'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $adminfide = filter_var($_POST['adminfide'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $contacto = filter_var($_POST['contacto'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $promotor = filter_var($_POST['promotor'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $activo = filter_var($_POST['activo'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         try {
-            $stmtCheck = $db->prepare("SELECT COUNT(*) as total FROM t_cat_banxico WHERE clave = ?");
-            $stmtCheck->execute([$clave]);
+            // Validar que el correo no exista
+            $stmtCheck = $db->prepare("SELECT COUNT(*) as total FROM t_gestores WHERE correo = ?");
+            $stmtCheck->execute([$correo]);
             $existe = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
             if ($existe['total'] > 0) {
                 $response['success'] = false;
-                $response['message'] = 'Ya existe un registro con esta clave';
+                $response['message'] = 'Ya existe un registro con este correo';
                 break;
             }
-            $stmt = $db->prepare("INSERT INTO t_cat_banxico (banco, clave, codigo, activo) 
-                                  VALUES (?, ?, ?, ?)");
+
+            // Insertar el registro
+            $stmt = $db->prepare("INSERT INTO t_gestores (nombres, paterno, materno, correo, ext, firmante, adminfide, contacto, promotor, activo) 
+                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
-                $banco,
-                $clave,
-                $codigo,
+                $nombres,
+                $paterno,
+                $materno,
+                $correo,
+                $ext,
+                $firmante ? 'true' : 'false',
+                $adminfide ? 'true' : 'false',
+                $contacto ? 'true' : 'false',
+                $promotor ? 'true' : 'false',
                 $activo ? 'true' : 'false'
             ]);
+
+            // Obtener el ID insertado y generar url_gestor
+            $newId = $db->lastInsertId();
+            $urlGestor = 'uploads/gestores/' . $newId;
+            
+            $stmtUrl = $db->prepare("UPDATE t_gestores SET url_gestor = ? WHERE id = ?");
+            $stmtUrl->execute([$urlGestor, $newId]);
 
             $response['success'] = true;
             $response['message'] = 'Registro creado exitosamente';
@@ -67,31 +89,40 @@ switch ($action) {
         }
 
         $id = $_POST['id'] ?? 0;
-        $banco = $_POST['banco'] ?? '';
-        $clave = $_POST['clave'] ?? '';
-        $codigo = $_POST['codigo'] ?? '';
-        // Conversión más robusta del campo activo
-        $activo = ($_POST['activo'] ?? '0') == '1' || $_POST['activo'] === 'true' || $_POST['activo'] === true;
+        $nombres = trim($_POST['nombres'] ?? '');
+        $paterno = trim($_POST['paterno'] ?? '');
+        $materno = trim($_POST['materno'] ?? '');        
+        $correo = trim($_POST['correo'] ?? '');
+        $ext = trim($_POST['ext'] ?? '');
+        $firmante = filter_var($_POST['firmante'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $adminfide = filter_var($_POST['adminfide'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $contacto = filter_var($_POST['contacto'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $promotor = filter_var($_POST['promotor'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $activo = filter_var($_POST['activo'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         try {
-            $stmtCheck = $db->prepare("SELECT COUNT(*) as total 
-                               FROM t_cat_banxico 
-                               WHERE clave = ? 
-                               AND id != ?");
-            $stmtCheck->execute([$clave, $id]);
+            // Validar que el correo no exista en otro registro
+            $stmtCheck = $db->prepare("SELECT COUNT(*) as total FROM t_gestores WHERE correo = ? AND id != ?");
+            $stmtCheck->execute([$correo, $id]);
             $existe = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
             if ($existe['total'] > 0) {
                 $response['success'] = false;
-                $response['message'] = 'Ya existe la clave en otro registro';
+                $response['message'] = 'Ya existe el correo en otro registro';
                 break;
             }
 
-            $stmt = $db->prepare("UPDATE t_cat_banxico SET banco = ?, clave = ?, codigo = ?, activo = ? WHERE id = ?");
+            $stmt = $db->prepare("UPDATE t_gestores SET nombres = ?, paterno = ?, materno = ?, correo = ?, ext = ?, firmante = ?, adminfide = ?, contacto = ?, promotor = ?, activo = ? WHERE id = ?");
             $stmt->execute([
-                $banco,
-                $clave,
-                $codigo,
+                $nombres,
+                $paterno,
+                $materno,
+                $correo,
+                $ext,
+                $firmante ? 'true' : 'false',
+                $adminfide ? 'true' : 'false',
+                $contacto ? 'true' : 'false',
+                $promotor ? 'true' : 'false',
                 $activo ? 'true' : 'false',
                 $id
             ]);
@@ -113,7 +144,7 @@ switch ($action) {
         $id = $_POST['id'] ?? 0;
 
         try {
-            $stmt = $db->prepare("UPDATE t_cat_banxico SET activo = false WHERE id = ?");
+            $stmt = $db->prepare("UPDATE t_gestores SET activo = false WHERE id = ?");
             $stmt->execute([$id]);
 
             $response['success'] = true;
@@ -134,7 +165,7 @@ switch ($action) {
 
         $id = $_GET['id'] ?? '';
         try {
-            $stmt = $db->prepare("SELECT * FROM t_cat_banxico WHERE id = ?");
+            $stmt = $db->prepare("SELECT * FROM t_gestores WHERE id = ?");
             $stmt->execute([$id]);
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
 

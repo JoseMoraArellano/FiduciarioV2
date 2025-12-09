@@ -211,8 +211,8 @@ $canDelete = $isAdmin || $session->hasPermission('catalogos', 'supprimer', 'usua
                         href="catalogos.php?mod=usuarios&action=list"
                         class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition flex items-center gap-2"
                     >
-                        <i class="fas fa-times"></i>
-                        Limpiar
+                        <i class="fas fa-eraser mr-1"></i>
+                        Limpiar filtros
                     </a>
                 </div>
             </form>

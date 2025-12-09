@@ -179,8 +179,8 @@ if (!empty($registros)) {
                 <input type="date" name="fecha_fin" value="<?= htmlspecialchars($fecha_fin); ?>" class="mt-1 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div class="flex gap-2">
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Filtrar</button>
-                <a href="catalogos.php?mod=inpc" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Limpiar</a>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"><i class="fas fa-filter"></i> Filtrar</button>
+                <a href="catalogos.php?mod=inpc" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"> <i class="fas fa-eraser mr-1"></i>Limpiar filtros</a>
             </div>
         </form>
     </div>
