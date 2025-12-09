@@ -477,6 +477,72 @@ try {
                         </div>
                     </div>
                 </div>
+                <!-- Sección: Leer archivos de bancos -->
+                <div>
+                    <h4 class="text-md font-semibold text-gray-700 mb-4 pb-2 border-b">Leer archivos de bancos</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Leer archivos Banamex -->
+                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Leer archivos Banamex</label>
+                            <select x-model="form.la_banamex" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="0">No</option>
+                                <option value="1">Si</option>
+                            </select>
+                                </div>
+                        <!-- Leer archivos Bancomer -->
+                         <div>
+                            <label class="block text-sm font-medium text-gray-700">Leer archivos Bancomer</label>
+                            <select x-model="form.la_bancomer" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="0">No</option>
+                                <option value="1">Si</option>
+                            </select>
+                        </div>
+                        <!-- Leer archivos SCOTIA -->
+                         <div>
+                            <label class="block text-sm font-medium text-gray-700">Leer archivos Scotia</label>
+                            <select x-model="form.la_scotia" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="0">No</option>
+                                <option value="1">Si</option>
+                            </select>
+                        </div>
+                        <!-- Leer archivos HSBC -->
+                         <div>
+                            <label class="block text-sm font-medium text-gray-700">Leer archivos HSBC</label>
+                            <select x-model="form.la_hsbc" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="0">No</option>
+                                <option value="1">Si</option>
+                            </select>
+                        </div>
+                        <!-- Leer archivos nombre -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Nombre</label>
+                            <input type="text" x-model="form.la_nombre" 
+                                   class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Falta concetar a otra tabla para validar">
+                        </div>
+                        <!-- Leer archivos concepto  -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Concepto</label>
+                            <input type="text" x-model="form.la_concepto" 
+                                   class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <!-- Leer archivos titular -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Titular</label>
+                            <input type="text" x-model="form.la_titular" 
+                                   class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <!-- Leer archivos cuenta -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Cuenta</label>
+                            <select x-model="form.la_cuenta" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Seleccione</option>
+                                <option value="Concentradora">Concentradora</option>
+                                <option value="Chequera">Chequera</option>
+                                <option value="Chequera">Inversión</option>
+                            </select>
+                        </div>
+
             </div>
             
             <!-- Botones -->
@@ -536,6 +602,10 @@ function cuentasController() {
             saldo_actual: 0,
             formato_cheques: null,
             sucursal: null,
+            la_nombre: null,
+            la_cocepto: null,
+            la_titular: null,
+            la_cuenta: null,
             cuenta_contable: null,
             banco_doble: 0,
             cuenta_eje: null,
@@ -547,6 +617,10 @@ function cuentasController() {
             chueque_x_hoja: 0,
             activo: 1,
             tipo_de_cuenta: 0,
+            la_banamex: 0,
+            la_bancomer: 0,
+            la_scotia: 0,
+            la_hsbc: 0,
             tipo_moneda: 'MN',
             fecha_de_cambio: '',
             fecha_de_apertura: '',
@@ -698,6 +772,10 @@ function cuentasController() {
                 saldo_actual: 0,
                 formato_cheques: '',
                 sucursal: '',
+                la_nombre:'',
+                la_concepto:'',
+                la_titular:'',
+                la_cuenta:'',
                 cuenta_contable: '',
                 banco_doble: 0,
                 cuenta_eje: '',
@@ -709,6 +787,10 @@ function cuentasController() {
                 chueque_x_hoja: 0,
                 activo: 1,
                 tipo_de_cuenta: 0,
+                la_banamex: 0,
+                la_bancomer: 0,
+                la_scotia: 0,
+                la_hsbc: 0,
                 tipo_moneda: 'MN',
                 fecha_de_cambio: '',
                 fecha_de_apertura: '',
@@ -717,108 +799,125 @@ function cuentasController() {
         },
 
         openEditModal(id) {
-            fetch(`modules/cuentas/actions.php?action=get&id=${id}`)
-                .then(r => r.json())
-                .then(resp => {
-                    if (resp.success) {
-                        const d = resp.data;
-                        this.form = {
-                            id: d.id,
-                            fideicomiso: d.fideicomiso,
-                            nombre_de_banco: d.nombre_de_banco || '',
-                            cuenta: d.cuenta,
-                            clabe: d.clabe || '',
-                            categoria: d.categoria,
-                            banxico: d.banxico,
-                            saldo_inicial: d.saldo_inicial || 0,
-                            saldo_actual: d.saldo_actual || 0,
-                            formato_cheques: d.formato_cheques,
-                            sucursal: d.sucursal,
-                            cuenta_contable: d.cuenta_contable,
-                            banco_doble: d.banco_doble == true ? 1 : 0,
-                            cuenta_eje: d.cuenta_eje,
-                            cheque_inicial: d.cheque_inicial,
-                            cheque_final: d.cheque_final,
-                            ultimo_cheque_asignado: d.ultimo_cheque_asignado,
-                            cheques_especiales_imp: d.cheques_especiales_imp == true ? 1 : 0,
-                            cheques_especiales_con_poliza: d.cheques_especiales_con_poliza == true ? 1 : 0,
-                            chueque_x_hoja: d.chueque_x_hoja == true ? 1 : 0,
-                            activo: d.activo == true ? 1 : 0,
-                            tipo_de_cuenta: d.tipo_de_cuenta == true ? 1 : 0, // << CORRECTO
-
-                            tipo_moneda: d.tipo_moneda || 'MN',
-                            fecha_de_cambio: d.fecha_de_cambio || '',
-                            fecha_de_apertura: d.fecha_de_apertura || '',
-                            tasa_de_cambio: d.tasa_de_cambio || ''
-                        };
-                        this.modal.open = true;
-                        this.modal.title = 'Editar Cuenta Bancaria';
-                        this.modal.actionText = 'Actualizar';
-                    } else {
-                        alert(resp.message || 'No se pudo obtener el registro.');
-                    }
-                }).catch(err => {
-                    console.error(err);
-                    alert('Error al obtener el registro.');
-                });
-        },
+    fetch(`modules/cuentas/actions.php?action=get&id=${id}`)
+        .then(r => r.json())
+        .then(resp => {
+            if (resp.success) {
+                const d = resp.data;
+                this.form = {
+                    id: d.id,
+                    fideicomiso: d.fideicomiso,
+                    nombre_de_banco: d.nombre_de_banco || '',
+                    cuenta: d.cuenta,
+                    clabe: d.clabe || '',
+                    categoria: d.categoria,
+                    banxico: d.banxico,
+                    saldo_inicial: d.saldo_inicial || 0,
+                    saldo_actual: d.saldo_actual || 0,
+                    formato_cheques: d.formato_cheques,
+                    sucursal: d.sucursal,
+                    la_nombre: d.la_nombre || '',
+                    la_concepto: d.la_concepto || '', // CORRECCIÓN: era la_cocepto
+                    la_titular: d.la_titular || '',
+                    la_cuenta: d.la_cuenta || '',
+                    cuenta_contable: d.cuenta_contable,
+                    banco_doble: d.banco_doble == true ? 1 : 0,
+                    cuenta_eje: d.cuenta_eje,
+                    cheque_inicial: d.cheque_inicial,
+                    cheque_final: d.cheque_final,
+                    ultimo_cheque_asignado: d.ultimo_cheque_asignado,
+                    cheques_especiales_imp: d.cheques_especiales_imp == true ? 1 : 0,
+                    cheques_especiales_con_poliza: d.cheques_especiales_con_poliza == true ? 1 : 0,
+                    chueque_x_hoja: d.chueque_x_hoja == true ? 1 : 0,
+                    activo: d.activo == true ? 1 : 0,
+                    tipo_de_cuenta: d.tipo_de_cuenta == true ? 1 : 0,
+                    la_banamex: d.la_banamex == true ? 1 : 0,
+                    la_bancomer: d.la_bancomer == true ? 1 : 0,
+                    la_scotia: d.la_scotia == true ? 1 : 0,
+                    la_hsbc: d.la_hsbc == true ? 1 : 0,
+                    tipo_moneda: d.tipo_moneda || 'MN',
+                    fecha_de_cambio: d.fecha_de_cambio || '',
+                    fecha_de_apertura: d.fecha_de_apertura || '',
+                    tasa_de_cambio: d.tasa_de_cambio || ''
+                };
+                this.modal.open = true;
+                this.modal.title = 'Editar Cuenta Bancaria';
+                this.modal.actionText = 'Actualizar';
+            } else {
+                alert(resp.message || 'No se pudo obtener el registro.');
+            }
+        }).catch(err => {
+            console.error(err);
+            alert('Error al obtener el registro.');
+        });
+},
 
         closeModal() {
             this.modal.open = false;
         },
 
         submitForm() {
-            const action = this.form.id ? 'update' : 'create';
-            const body = new URLSearchParams();
-            body.append('action', action);
-            
-            const booleanFields = ['cheques_especiales_imp', 'cheques_especiales_con_poliza', 'chueque_x_hoja', 'activo', 'banco_doble', 'tipo_de_cuenta'];
-            
-            for (const [key, value] of Object.entries(this.form)) {
-                if (booleanFields.includes(key)) {
-                    body.append(key, value == 1 ? 1 : 0);
-                } else {
-                    body.append(key, value ?? '');
-                }
-                for (const [key, value] of Object.entries(this.form)) {
-
-    if (booleanFields.includes(key)) {
-        body.append(key, value == 1 ? 1 : 0);
-        continue;
+    const action = this.form.id ? 'update' : 'create';
+    const body = new URLSearchParams();
+    body.append('action', action);
+    
+    // Lista de campos booleanos - CORRECCIÓN: faltaba la_banamex
+    const booleanFields = [
+        'cheques_especiales_imp', 
+        'cheques_especiales_con_poliza', 
+        'chueque_x_hoja', 
+        'activo', 
+        'banco_doble', 
+        'tipo_de_cuenta',
+        'la_banamex',  // ← CORREGIDO
+        'la_bancomer', 
+        'la_scotia', 
+        'la_hsbc'
+    ];
+    
+    // Campos numéricos que pueden ser null
+    const numericNullableFields = [
+        'cuenta_eje', 
+        'cheque_inicial', 
+        'cheque_final', 
+        'ultimo_cheque_asignado'
+    ];
+    
+    // Procesar todos los campos
+    for (const [key, value] of Object.entries(this.form)) {
+        if (booleanFields.includes(key)) {
+            // Campos booleanos → 0 o 1
+            body.append(key, value == 1 ? 1 : 0);
+        } else if (numericNullableFields.includes(key)) {
+            // Campos numéricos que pueden ser null
+            body.append(key, value === '' || value === null ? '' : value);
+        } else {
+            // Todos los demás campos
+            body.append(key, value ?? '');
+        }
     }
 
-    // Si el campo es numérico y viene vacío → envía null
-    if (['cuenta_eje', 'cheque_inicial', 'cheque_final', 'ultimo_cheque_asignado'].includes(key)) {
-        body.append(key, value === '' ? null : value);
-        continue;
-    }
-
-    // Todos los demás campos
-    body.append(key, value ?? '');
-}
-
+    fetch('modules/cuentas/actions.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+    }).then(async r => {
+        try {
+            const data = await r.json();
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Error al guardar.');
             }
-
-            fetch('modules/cuentas/actions.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: body.toString()
-            }).then(async r => {
-                try {
-                    const data = await r.json();
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert(data.message || 'Error al guardar.');
-                    }
-                } catch (err) {
-                    location.reload();
-                }
-            }).catch(err => {
-                console.error(err);
-                alert('Error en la petición.');
-            });
-        },
+        } catch (err) {
+            console.error('Error parsing JSON:', err);
+            location.reload();
+        }
+    }).catch(err => {
+        console.error('Error en la petición:', err);
+        alert('Error en la petición.');
+    });
+},
 
         confirmDelete(id) {
             if (!confirm('¿Está seguro de eliminar esta cuenta?')) return;
