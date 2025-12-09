@@ -103,10 +103,8 @@ $canDelete = $isAdmin || $session->hasPermission('catalogos', 'supprimer', 'usua
             
             <!-- Fila superior: Título y botón crear -->
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                    <i class="fas fa-list text-blue-600"></i>
-                    Listado de Usuarios
-                    <span class="text-sm font-normal text-gray-500">(<?php echo $total; ?> registros)</span>
+                <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">                    
+                    Gestion de Usuarios                    
                 </h2>
                 
                 <div class="flex items-center gap-2">
@@ -484,7 +482,7 @@ $canDelete = $isAdmin || $session->hasPermission('catalogos', 'supprimer', 'usua
         <?php endif; ?>
         
     </div>
-    
+    <span class="text-sm font-normal text-gray-500">(<?php echo $total; ?> registros)</span>
 </div>
 
 <script>

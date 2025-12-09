@@ -93,7 +93,7 @@ if (!empty($registros)) {
     <!-- Header -->
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-semibold text-gray-800"><i class="fas fa-percentage mr-2"></i> Gestión de Gestión de Tasas de Interés Interbancarias de Equilibrio</h1>
+            <h1 class="text-2xl font-semibold text-gray-800"> Gestión de Gestión de Tasas de Interés Interbancarias de Equilibrio</h1>
 <!--            <p class="text-sm text-gray-500">Tasas de Interés Interbancarias de Equilibrio</p> -->
         </div>
         <?php if ($canCreate): ?>

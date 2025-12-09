@@ -37,7 +37,10 @@ switch ($action) {
         $adminfide = filter_var($_POST['adminfide'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $contacto = filter_var($_POST['contacto'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $promotor = filter_var($_POST['promotor'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $notario = filter_var($_POST['notario'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $activo = filter_var($_POST['activo'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $nota = trim($_POST['nota'] ?? '');
+        $notapublic = trim($_POST['notapublic'] ?? '');
 
         try {
             // Validar que el correo no exista
@@ -52,8 +55,8 @@ switch ($action) {
             }
 
             // Insertar el registro
-            $stmt = $db->prepare("INSERT INTO t_gestores (nombres, paterno, materno, correo, ext, firmante, adminfide, contacto, promotor, activo) 
-                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $db->prepare("INSERT INTO t_gestores (nombres, paterno, materno, correo, ext, firmante, adminfide, contacto, promotor, notario, activo, nota, notapublic) 
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $nombres,
                 $paterno,
@@ -64,7 +67,10 @@ switch ($action) {
                 $adminfide ? 'true' : 'false',
                 $contacto ? 'true' : 'false',
                 $promotor ? 'true' : 'false',
-                $activo ? 'true' : 'false'
+                $notario ? 'true' : 'false',
+                $activo ? 'true' : 'false',
+                $nota,
+                $notapublic
             ]);
 
             // Obtener el ID insertado y generar url_gestor
@@ -98,7 +104,10 @@ switch ($action) {
         $adminfide = filter_var($_POST['adminfide'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $contacto = filter_var($_POST['contacto'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $promotor = filter_var($_POST['promotor'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $notario = filter_var($_POST['notario'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $activo = filter_var($_POST['activo'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $nota = trim($_POST['nota'] ?? '');
+        $notapublic = trim($_POST['notapublic'] ?? '');
 
         try {
             // Validar que el correo no exista en otro registro
@@ -112,7 +121,7 @@ switch ($action) {
                 break;
             }
 
-            $stmt = $db->prepare("UPDATE t_gestores SET nombres = ?, paterno = ?, materno = ?, correo = ?, ext = ?, firmante = ?, adminfide = ?, contacto = ?, promotor = ?, activo = ? WHERE id = ?");
+            $stmt = $db->prepare("UPDATE t_gestores SET nombres = ?, paterno = ?, materno = ?, correo = ?, ext = ?, firmante = ?, adminfide = ?, contacto = ?, promotor = ?, notario = ?, activo = ?, nota = ?, notapublic = ? WHERE id = ?");
             $stmt->execute([
                 $nombres,
                 $paterno,
@@ -123,7 +132,10 @@ switch ($action) {
                 $adminfide ? 'true' : 'false',
                 $contacto ? 'true' : 'false',
                 $promotor ? 'true' : 'false',
+                $notario ? 'true' : 'false',
                 $activo ? 'true' : 'false',
+                $nota,
+                $notapublic,
                 $id
             ]);
 

@@ -91,7 +91,7 @@ if (!empty($registros)) {
     <!-- Header -->
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-semibold text-gray-800"><i class="fas fa-percentage mr-2"></i> Gestión de Tasa de Cambio</h1>
+            <h1 class="text-2xl font-semibold text-gray-800"> Gestión de Tasa de Cambio</h1>
             <p class="text-sm text-gray-500"> </p>
         </div>
         <?php if ($canCreate): ?>

@@ -41,7 +41,7 @@ if (!$canView) {
 
 
 try {
-    $query = "SELECT id,nombres,paterno,materno,correo,ext,firmante,adminfide,contacto,promotor,url_gestor,activo FROM t_gestores";
+    $query = "SELECT id,nombres,paterno,materno,correo,ext,firmante,adminfide,contacto,promotor,notario,nota,notapublic,activo,url_gestor FROM t_gestores";
     if (!$isAdmin && $canEdit) {
         $query .= " WHERE activo = true";
     }
@@ -71,7 +71,7 @@ try {
     <!-- Header -->
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-semibold text-gray-800"><i class="fa-solid fa-user-pen"></i> Catálogo de Gestores</h1>
+            <h1 class="text-2xl font-semibold text-gray-800"> Catálogo de Gestores</h1>
         </div>
         <?php if ($canCreate): ?>
             <button @click="openCreateModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
@@ -108,32 +108,53 @@ try {
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Buscar por correo...">
             </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">notas</label>
+                <input type="text" x-model="filtros.notas" @input="aplicarFiltros()"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Buscar por contenido de notas...">
+            </div>
         </div>
 
         <!-- Fila 2: Filtros de roles (checkboxes) -->
         <div class="mt-4 pt-4 border-t">
             <div class="border border-gray-300 rounded-lg p-4 bg-gray-50">
                 <label class="block text-sm font-medium text-gray-700 mb-3">Filtrar por rol:</label>
-                <div class="flex flex-wrap gap-6">
+                <div class="flex flex-wrap gap-20">
                     <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" x-model="filtros.firmante" @change="aplicarFiltros()"
-                            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
-                        <span class="ml-2 text-sm text-gray-700">Firmante</span>
+                        <div class="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                            <input type="checkbox" x-model="filtros.firmante" @change="aplicarFiltros()"
+                                class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700">Firmante</span>
+                        </div>
                     </label>
                     <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" x-model="filtros.adminfide" @change="aplicarFiltros()"
-                            class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
-                        <span class="ml-2 text-sm text-gray-700">Admin Fideicomiso</span>
+                        <div class="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                            <input type="checkbox" x-model="filtros.adminfide" @change="aplicarFiltros()"
+                                class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                            <span class="ml-2 text-sm text-gray-700">Admin Fideicomiso</span>
+                        </div>
                     </label>
                     <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" x-model="filtros.contacto" @change="aplicarFiltros()"
-                            class="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-2 focus:ring-teal-500">
-                        <span class="ml-2 text-sm text-gray-700">Contacto</span>
+                        <div class="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                            <input type="checkbox" x-model="filtros.contacto" @change="aplicarFiltros()"
+                                class="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-2 focus:ring-teal-500">
+                            <span class="ml-2 text-sm text-gray-700">Contacto</span>
+                        </div>
                     </label>
                     <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" x-model="filtros.promotor" @change="aplicarFiltros()"
-                            class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-2 focus:ring-orange-500">
-                        <span class="ml-2 text-sm text-gray-700">Promotor</span>
+                        <div class="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                            <input type="checkbox" x-model="filtros.promotor" @change="aplicarFiltros()"
+                                class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-2 focus:ring-orange-500">
+                            <span class="ml-2 text-sm text-gray-700">Promotor</span>
+                        </div>
+                    </label>
+                    <label class="flex items-center cursor-pointer">
+                        <div class="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                            <input type="checkbox" x-model="filtros.notario" @change="aplicarFiltros()"
+                                class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-2 focus:ring-orange-500">
+                            <span class="ml-2 text-sm text-gray-700">Notario</span>
+                        </div>
                     </label>
                 </div>
             </div>
@@ -153,16 +174,16 @@ try {
             <table class="min-w-full divide-y divide-gray-200" role="table" x-ref="table">
                 <thead class="bg-gray-50">
                     <tr>
-                        <?php if ($isAdmin): ?>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('id')">
-                                <div class="flex items-center justify-center gap-1">ID
-                                    <span x-show="sort.column === 'id'">
-                                        <template x-if="sort.desc"><i class="fas fa-sort-down"></i></template>
-                                        <template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template>
-                                    </span>
-                                </div>
-                            </th>
-                        <?php endif; ?>
+
+                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('id')">
+                            <div class="flex items-center justify-center gap-1">ID
+                                <i class="fas fa-sticky-note text-gray-400 ml-1" title="Tiene notas"></i>
+                                <span x-show="sort.column === 'id'">
+                                    <template x-if="sort.desc"><i class="fas fa-sort-down"></i></template>
+                                    <template x-if="!sort.desc"><i class="fas fa-sort-up"></i></template>
+                                </span>
+                            </div>
+                        </th>
 
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('nombres')">
                             <div class="flex items-center justify-center gap-1">Nombres
@@ -205,6 +226,7 @@ try {
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Admin Fide</th>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Contacto</th>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Promotor</th>
+                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Notario</th>
 
                         <?php if ($isAdmin): ?>
                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Activo</th>
@@ -216,7 +238,55 @@ try {
                     <template x-for="row in registrosFiltrados" :key="row.id">
                         <tr class="hover:bg-gray-50">
                             <?php if ($isAdmin): ?>
-                                <td class="px-4 py-3 text-sm text-gray-700 text-center" x-text="row.id"></td>
+                                <td class="px-4 py-3 text-sm text-gray-700 text-center relative">
+                                    <div class="inline-flex items-center gap-1">
+                                        <span x-text="row.id"></span>
+                                        <!-- Ícono de notas con popover -->
+                                        <template x-if="row.nota || row.notapublic">
+                                            <div class="relative" x-data="{ showPopover: false }">
+                                                <button @mouseenter="showPopover = true" @mouseleave="showPopover = false"
+                                                    @click="showPopover = !showPopover"
+                                                    class="text-blue-500 hover:text-blue-700 focus:outline-none">
+                                                    <i class="fas fa-sticky-note"></i>
+                                                </button>
+                                                <!-- Popover -->
+                                                <div x-show="showPopover"
+                                                    x-transition:enter="transition ease-out duration-200"
+                                                    x-transition:enter-start="opacity-0 translate-y-1"
+                                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                                    x-transition:leave="transition ease-in duration-150"
+                                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                                    x-transition:leave-end="opacity-0 translate-y-1"
+                                                    class="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 w-72 
+                                                    bg-[#FFF9C4] border border-yellow-400 rounded-lg shadow-lg p-3"
+                                                    @click.away="showPopover = false">
+
+                                                    <div class="space-y-2">
+                                                        <template x-if="row.nota">
+                                                            <div>
+                                                                <span class="text-xs font-semibold text-gray-700 uppercase">Nota Interna:</span>
+                                                                <p class="text-sm text-gray-800 mt-1" x-text="row.nota"></p>
+                                                            </div>
+                                                        </template>
+
+                                                        <template x-if="row.notapublic">
+                                                            <div :class="{'border-t border-yellow-300 pt-2': row.nota}">
+                                                                <span class="text-xs font-semibold text-green-700 uppercase">Nota Pública:</span>
+                                                                <p class="text-sm text-gray-800 mt-1" x-text="row.notapublic"></p>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+
+                                                    <!-- Flecha del popover -->
+                                                    <div class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full">
+                                                        <div class="border-8 border-transparent border-r-[#FFF9C4]"></div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </template>
+                                    </div>
+                                </td>
                             <?php endif; ?>
                             <td class="px-4 py-3 text-sm text-gray-700 text-center" x-text="row.nombres"></td>
                             <td class="px-4 py-3 text-sm text-gray-700 text-center" x-text="row.paterno"></td>
@@ -238,6 +308,10 @@ try {
                             <td class="px-4 py-3 text-sm text-center">
                                 <span x-show="row.promotor" class="inline-flex items-center px-2 py-1 rounded text-xs bg-orange-100 text-orange-800">Sí</span>
                                 <span x-show="!row.promotor" class="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-100 text-gray-500">No</span>
+                            </td>
+                            <td class="px-4 py-3 text-sm text-center">
+                                <span x-show="row.notario" class="inline-flex items-center px-2 py-1 rounded text-xs bg-orange-100 text-orange-800">Sí</span>
+                                <span x-show="!row.notario" class="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-100 text-gray-500">No</span>
                             </td>
                             <?php if ($isAdmin): ?>
                                 <td class="px-4 py-3 text-sm text-center">
@@ -280,7 +354,7 @@ try {
                 </button>
             </div>
 
-            <form @submit.prevent="submitForm" class="p-4 space-y-4 max-h-[70vh] overflow-y-auto">
+            <form @submit.prevent="submitForm" class="p-4 space-y-4 max-h-[85vh] overflow-y-auto">
                 <input type="hidden" name="id" x-model="form.id">
 
                 <!-- Fila 1: Nombres -->
@@ -325,7 +399,7 @@ try {
 
                 <!-- Fila 4: Checkboxes de roles -->
                 <div class="border rounded-lg p-4 bg-gray-50">
-                    <label class="block text-sm font-medium text-gray-700 mb-3">Roles del Gestor</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Roles que puede desempeñar el Gestor: </label>
                     <div class="grid grid-cols-2 gap-4">
                         <label class="flex items-center cursor-pointer">
                             <input type="checkbox" x-model="form.firmante"
@@ -347,9 +421,28 @@ try {
                                 class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-2 focus:ring-orange-500">
                             <span class="ml-2 text-sm text-gray-700">Promotor</span>
                         </label>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="checkbox" x-model="form.notario"
+                                class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-2 focus:ring-orange-500">
+                            <span class="ml-2 text-sm text-gray-700">notario</span>
+                        </label>
                     </div>
                 </div>
-
+                <!-- Notas -->
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Nota Interna</label>
+                        <textarea x-model="form.nota" rows="2" maxlength="500"
+                            class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Nota interna (solo no imprimible)"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Nota Pública / Direccion completa</label>
+                        <textarea x-model="form.notapublic" rows="2" maxlength="500"
+                            class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            placeholder="Campo visible e imprimible"></textarea>
+                    </div>
+                </div>
                 <!-- Campo Activo -->
                 <div class="flex items-center">
                     <label class="flex items-center cursor-pointer">
@@ -392,7 +485,10 @@ try {
                                 'adminfide' => ($r['adminfide'] === 't' || $r['adminfide'] === true || $r['adminfide'] === '1' || $r['adminfide'] === 1),
                                 'contacto' => ($r['contacto'] === 't' || $r['contacto'] === true || $r['contacto'] === '1' || $r['contacto'] === 1),
                                 'promotor' => ($r['promotor'] === 't' || $r['promotor'] === true || $r['promotor'] === '1' || $r['promotor'] === 1),
+                                'notario' => ($r['notario'] === 't' || $r['notario'] === true || $r['notario'] === '1' || $r['notario'] === 1),
                                 'activo' => ($r['activo'] === 't' || $r['activo'] === true || $r['activo'] === '1' || $r['activo'] === 1),
+                                'nota' => $r['nota'] ?? '',
+                                'notapublic' => $r['notapublic'] ?? '',
                             ];
                         }, $registros)); ?>,
 
@@ -403,10 +499,12 @@ try {
                 paterno: '',
                 materno: '',
                 correo: '',
+                notas: '',
                 firmante: false,
                 adminfide: false,
                 contacto: false,
-                promotor: false
+                promotor: false,
+                notario: false
             },
 
             sort: {
@@ -431,7 +529,10 @@ try {
                 adminfide: false,
                 contacto: false,
                 promotor: false,
-                activo: true
+                notario: false,
+                activo: true,
+                nota: '',
+                notapublic: ''
             },
 
             init() {
@@ -470,6 +571,13 @@ try {
                         (r.correo || '').toLowerCase().includes(busqueda)
                     );
                 }
+                if (this.filtros.notas.trim()) {
+                    const busqueda = this.filtros.notas.toLowerCase().trim();
+                    resultado = resultado.filter(r =>
+                        (r.nota || '').toLowerCase().includes(busqueda) ||
+                        (r.notapublic || '').toLowerCase().includes(busqueda)
+                    );
+                }
 
                 // Filtros de roles (checkboxes)
                 if (this.filtros.firmante) {
@@ -487,6 +595,9 @@ try {
                 if (this.filtros.promotor) {
                     resultado = resultado.filter(r => r.promotor === true);
                 }
+                if (this.filtros.notario) {
+                    resultado = resultado.filter(r => r.notario === true);
+                }
 
                 this.registrosFiltrados = resultado;
                 this.applySort();
@@ -498,10 +609,12 @@ try {
                     paterno: '',
                     materno: '',
                     correo: '',
+                    notas: '',
                     firmante: false,
                     adminfide: false,
                     contacto: false,
-                    promotor: false
+                    promotor: false,
+                    notario: false
                 };
                 this.aplicarFiltros();
             },
@@ -548,7 +661,10 @@ try {
                     adminfide: false,
                     contacto: false,
                     promotor: false,
-                    activo: true
+                    notario: false,
+                    activo: true,
+                    nota: '',
+                    notapublic: ''
                 };
                 this.modal.open = true;
                 this.modal.title = 'Nuevo Gestor';
@@ -572,7 +688,10 @@ try {
                                 adminfide: d.adminfide === 't' || d.adminfide === true || d.adminfide == 1,
                                 contacto: d.contacto === 't' || d.contacto === true || d.contacto == 1,
                                 promotor: d.promotor === 't' || d.promotor === true || d.promotor == 1,
-                                activo: d.activo === 't' || d.activo === true || d.activo == 1
+                                notario: d.notario === 't' || d.notario === true || d.notario == 1,
+                                activo: d.activo === 't' || d.activo === true || d.activo == 1,
+                                nota: d.nota || '',
+                                notapublic: d.notapublic || ''
                             };
                             this.modal.open = true;
                             this.modal.title = 'Editar Gestor';
@@ -606,7 +725,10 @@ try {
                 body.append('adminfide', this.form.adminfide ? 1 : 0);
                 body.append('contacto', this.form.contacto ? 1 : 0);
                 body.append('promotor', this.form.promotor ? 1 : 0);
+                body.append('notario', this.form.notario ? 1 : 0);
                 body.append('activo', this.form.activo ? 1 : 0);
+                body.append('nota', this.form.nota);
+                body.append('notapublic', this.form.notapublic);
 
                 fetch('modules/gestores/actions.php', {
                         method: 'POST',
