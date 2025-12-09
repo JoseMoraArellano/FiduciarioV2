@@ -1,9 +1,0 @@
-[2025-11-28 18:06:31] [INFO] Iniciando carga histórica de TIIE desde 2025-11-25
-[2025-11-28 18:06:31] [INFO] Consultando históricos de tiie desde 2025-11-25 hasta 2025-11-28
-[2025-11-28 18:06:31] [INFO] Obtenidos 4 registros de TIIE
-[2025-11-28 18:06:31] [INFO] Insertados 0 registros de TIIE
-[2025-11-28 18:06:31] [INFO] ✅ Carga de TIIE completada: 3 insertados, 0 omitidos
-[2025-11-28 18:07:27] [INFO] Iniciando carga histórica de TDC desde 2025-11-25
-[2025-11-28 18:07:27] [INFO] Consultando históricos de tdc desde 2025-11-25 hasta 2025-11-28
-[2025-11-28 18:07:27] [INFO] Obtenidos 3 registros de TDC
-[2025-11-28 18:07:27] [INFO] ✅ Carga de TDC completada: 3 insertados, 0 omitidos
