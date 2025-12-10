@@ -1,0 +1,6 @@
+{
+    "name": "jdelgado/librerias",
+    "require": {
+        "phpoffice/phpspreadsheet": "^5.3"
+    }
+}
