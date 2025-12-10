@@ -71,7 +71,7 @@ try {
     <!-- Header -->
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-semibold text-gray-800"><i class="mr-2"></i> Gestión de Gastos</h1>
+            <h1 class="text-2xl font-semibold text-gray-800"><i class="mr-2"></i> Catalogo de conceptos para Eventos</h1>
         </div>
         <?php if ($canCreate): ?>
         <button @click="openCreateModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">

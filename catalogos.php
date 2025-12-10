@@ -39,6 +39,7 @@ $sidebar = new Sidebar($userPermissions, $userId, 'catalogos.php', $isAdmin);
 // Obtener módulo solicitado
 $mod = $_GET['mod'] ?? '';
 $action = $_GET['action'] ?? 'list';
+$view = $_GET['view'] ?? '';
 
 // Validar que el módulo exista en t_menu
 $moduleData = $sidebar->getModuleByModParam($mod);
@@ -93,7 +94,12 @@ $actionFile = '';
 switch ($action) {
     case 'list':
     case 'view':
-        $actionFile = 'list.php';
+        // Verificar si hay una vista específica solicitada
+        if ($view === 'historial') {
+            $actionFile = 'historial.php';
+        } else {
+            $actionFile = 'list.php';
+        }
         break;
     case 'create':
     case 'edit':
@@ -206,17 +212,21 @@ if (!file_exists($fullPath)) {
                                 <a href="catalogos.php?mod=<?php echo $mod; ?>&action=list" class="hover:text-gray-700">
                                     <?php echo htmlspecialchars($currentModule['title']); ?>
                                 </a>
-                                <?php if ($action !== 'list'): ?>
+<?php if ($action !== 'list' || $view): ?>
                                 <span class="mx-2">/</span>
                                 <span class="text-gray-700 capitalize">
                                     <?php 
-                                    $actionTitles = [
-                                        'create' => 'Nuevo',
-                                        'edit' => 'Editar',
-                                        'view' => 'Ver',
-                                        'permissions' => 'Permisos'
-                                    ];
-                                    echo $actionTitles[$action] ?? ucfirst($action);
+                                    if ($view === 'historial') {
+                                        echo 'Historial';
+                                    } else {
+                                        $actionTitles = [
+                                            'create' => 'Nuevo',
+                                            'edit' => 'Editar',
+                                            'view' => 'Ver',
+                                            'permissions' => 'Permisos'
+                                        ];
+                                        echo $actionTitles[$action] ?? ucfirst($action);
+                                    }
                                     ?>
                                 </span>
                                 <?php endif; ?>
