@@ -10,7 +10,7 @@ error_reporting(E_ALL);
 // Ajusta estas rutas según la ubicación segun requieras
 // Si el archivo está en la raíz, usa './' 
 // Si está en subdirectorios, ajusta '../../' según la profundidad
-require_once 'config.php';
+require_once [$_SERVER].'/config.php';
 require_once 'includes/Database.php';
 require_once 'includes/Session.php';
 require_once 'includes/Permissions.php';

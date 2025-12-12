@@ -1,5 +1,10 @@
 <?php
-require_once '../config.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/config.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/Database.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/Session.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/Permissions.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/Auth.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/Sidebar.php';
 
 // Procesar búsqueda
 $resultado = null;
@@ -624,7 +629,7 @@ function limpiarTodo() {
   onclick="scrollToTop()" 
   class="hidden fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all duration-300"
   title="Volver arriba">
-  <img src="img/arrow-up.svg" alt="Flecha arriba" class="h-5 w-5" />
+  <img src="/img/arrow-up.svg" alt="Flecha arriba" class="h-5 w-5" />
 </button>
 
         <div class="mt-6 text-center">

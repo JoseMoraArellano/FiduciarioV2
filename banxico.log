@@ -1,0 +1,90 @@
+[2025-12-11 17:03:27] [INFO] Iniciando carga histórica de TIIE desde 2025-12-01
+[2025-12-11 17:03:27] [INFO] Consultando históricos de tiie desde 2025-12-01 hasta 2025-12-11
+[2025-12-11 17:03:43] [INFO] Iniciando carga histórica de UDIS desde 2025-12-01
+[2025-12-11 17:03:43] [INFO] Consultando históricos de udis desde 2025-12-01 hasta 2025-12-11
+[2025-12-11 17:04:25] [INFO] Iniciando sincronización de TIIE
+[2025-12-11 17:04:25] [INFO] Consultando TIIE oportuno...
+[2025-12-11 17:04:43] [INFO] Iniciando sincronización de Tipo de Cambio
+[2025-12-11 17:04:43] [INFO] Consultando Tipo de Cambio oportuno...
+[2025-12-11 17:44:17] [INFO] Iniciando carga histórica de TIIE desde 2025-12-01
+[2025-12-11 17:44:17] [INFO] Consultando históricos de tiie desde 2025-12-01 hasta 2025-12-11
+[2025-12-11 17:44:34] [INFO] Iniciando carga histórica de TIIE desde 2025-12-01
+[2025-12-11 17:44:34] [INFO] Consultando históricos de tiie desde 2025-12-01 hasta 2025-12-11
+[2025-12-11 17:44:43] [INFO] Iniciando carga histórica de TIIE desde 2025-12-01
+[2025-12-11 17:44:43] [INFO] Consultando históricos de tiie desde 2025-12-01 hasta 2025-12-11
+[2025-12-11 17:45:09] [INFO] Iniciando sincronización de TIIE
+[2025-12-11 17:45:09] [INFO] Consultando TIIE oportuno...
+[2025-12-11 18:16:31] [INFO] Iniciando carga histórica de TIIE desde 2025-12-01
+[2025-12-11 18:16:31] [INFO] Consultando históricos de tiie desde 2025-12-01 hasta 2025-12-11
+[2025-12-11 19:33:55] [INFO] Iniciando carga histórica de TIIE desde 2025-12-01
+[2025-12-11 19:33:55] [INFO] Consultando históricos de tiie desde 2025-12-01 hasta 2025-12-11
+[2025-12-11 19:33:55] [INFO] Obtenidos 9 registros de TIIE
+[2025-12-11 19:33:55] [INFO] Insertados 0 registros de TIIE
+[2025-12-11 19:33:55] [INFO] Insertados 0 registros de TIIE
+[2025-12-11 19:33:55] [INFO] Insertados 0 registros de TIIE
+[2025-12-11 19:33:55] [INFO] Insertados 0 registros de TIIE
+[2025-12-11 19:33:55] [INFO] Insertados 0 registros de TIIE
+[2025-12-11 19:33:55] [INFO] Insertados 0 registros de TIIE
+[2025-12-11 19:33:55] [INFO] Insertados 0 registros de TIIE
+[2025-12-11 19:33:55] [INFO] ✅ Carga de TIIE completada: 2 insertados, 0 omitidos
+[2025-12-11 18:39:40] [INFO] Iniciando carga histórica de UDIS desde 2025-12-01
+[2025-12-11 18:39:40] [INFO] Consultando históricos de udis desde 2025-12-01 hasta 2025-12-11
+[2025-12-11 18:45:21] [INFO] Iniciando carga histórica de UDIS desde 2025-12-01
+[2025-12-11 18:45:21] [INFO] Consultando históricos de udis desde 2025-12-01 hasta 2025-12-11
+[2025-12-11 18:45:34] [INFO] Iniciando carga histórica de TIIE desde 2025-12-01
+[2025-12-11 18:45:34] [INFO] Consultando históricos de tiie desde 2025-12-01 hasta 2025-12-11
+[2025-12-11 18:47:37] [INFO] Iniciando carga histórica de UDIS desde 2025-12-01
+[2025-12-11 18:47:37] [INFO] Consultando históricos de udis desde 2025-12-01 hasta 2025-12-11
+[2025-12-11 19:25:38] [INFO] Iniciando carga histórica de TIIE desde 2025-12-01
+[2025-12-11 19:25:38] [INFO] Consultando históricos de tiie desde 2025-12-01 hasta 2025-12-11
+[2025-12-11 19:25:38] [INFO] Obtenidos 9 registros de TIIE
+[2025-12-11 19:25:38] [INFO] Insertados 0 registros de TIIE
+[2025-12-11 19:25:38] [INFO] Insertados 0 registros de TIIE
+[2025-12-11 19:25:38] [INFO] Insertados 0 registros de TIIE
+[2025-12-11 19:25:38] [INFO] Insertados 0 registros de TIIE
+[2025-12-11 19:25:38] [INFO] Insertados 0 registros de TIIE
+[2025-12-11 19:25:38] [INFO] Insertados 0 registros de TIIE
+[2025-12-11 19:25:38] [INFO] Insertados 0 registros de TIIE
+[2025-12-11 19:25:38] [INFO] Insertados 0 registros de TIIE
+[2025-12-11 19:25:38] [INFO] Insertados 0 registros de TIIE
+[2025-12-11 19:25:38] [INFO] ✅ Carga de TIIE completada: 0 insertados, 0 omitidos
+[2025-12-11 20:37:33] [INFO] Iniciando carga histórica de TDC desde 2025-12-01
+[2025-12-11 20:37:33] [INFO] Consultando históricos de tdc desde 2025-12-01 hasta 2025-12-11
+[2025-12-11 20:37:33] [INFO] Obtenidos 9 registros de TDC
+[2025-12-11 20:37:33] [INFO] Insertados 0 registros de TDC
+[2025-12-11 20:37:33] [INFO] Insertados 0 registros de TDC
+[2025-12-11 20:37:33] [INFO] Insertados 0 registros de TDC
+[2025-12-11 20:37:33] [INFO] Insertados 0 registros de TDC
+[2025-12-11 20:37:33] [INFO] Insertados 0 registros de TDC
+[2025-12-11 20:37:33] [INFO] Insertados 0 registros de TDC
+[2025-12-11 20:37:33] [INFO] Insertados 0 registros de TDC
+[2025-12-11 20:37:33] [INFO] ✅ Carga de TDC completada: 2 insertados, 0 omitidos
+[2025-12-11 20:37:48] [INFO] Iniciando carga histórica de INPC desde 2025-12-01
+[2025-12-11 20:37:48] [INFO] Consultando históricos de inpc desde 2025-12-01 hasta 2025-12-11
+[2025-12-11 20:37:48] [WARNING] No se obtuvieron datos históricos de INPC
+[2025-12-11 20:37:55] [INFO] Iniciando carga histórica de CPP desde 2025-12-01
+[2025-12-11 20:37:55] [INFO] Consultando históricos de cpp desde 2025-12-01 hasta 2025-12-11
+[2025-12-11 20:37:55] [WARNING] No se obtuvieron datos históricos de CPP
+[2025-12-11 20:38:00] [INFO] Iniciando carga histórica de UDIS desde 2025-12-01
+[2025-12-11 20:38:00] [INFO] Consultando históricos de udis desde 2025-12-01 hasta 2025-12-11
+[2025-12-11 20:38:00] [INFO] Obtenidos 11 registros de UDIS
+[2025-12-11 20:38:00] [INFO] Insertados 0 registros de UDIS
+[2025-12-11 20:38:00] [INFO] Insertados 0 registros de UDIS
+[2025-12-11 20:38:00] [INFO] Insertados 0 registros de UDIS
+[2025-12-11 20:38:00] [INFO] Insertados 0 registros de UDIS
+[2025-12-11 20:38:00] [INFO] Insertados 0 registros de UDIS
+[2025-12-11 20:38:00] [INFO] Insertados 0 registros de UDIS
+[2025-12-11 20:38:00] [INFO] Insertados 0 registros de UDIS
+[2025-12-11 20:38:00] [INFO] Insertados 0 registros de UDIS
+[2025-12-11 20:38:00] [INFO] Insertados 0 registros de UDIS
+[2025-12-11 20:38:00] [INFO] ✅ Carga de UDIS completada: 2 insertados, 0 omitidos
+[2025-12-11 20:38:26] [INFO] Iniciando carga histórica de INPC desde 2025-11-01
+[2025-12-11 20:38:26] [INFO] Consultando históricos de inpc desde 2025-11-01 hasta 2025-12-11
+[2025-12-11 20:38:26] [INFO] Obtenidos 1 registros de INPC
+[2025-12-11 20:38:26] [INFO] Insertados 0 registros de INPC
+[2025-12-11 20:38:26] [INFO] ✅ Carga de INPC completada: 0 insertados, 0 omitidos
+[2025-12-11 20:38:33] [INFO] Iniciando carga histórica de CPP desde 2025-11-01
+[2025-12-11 20:38:33] [INFO] Consultando históricos de cpp desde 2025-11-01 hasta 2025-12-11
+[2025-12-11 20:38:34] [INFO] Obtenidos 1 registros de CPP
+[2025-12-11 20:38:34] [INFO] Insertados 0 registros de CPP
+[2025-12-11 20:38:34] [INFO] ✅ Carga de CPP completada: 0 insertados, 0 omitidos

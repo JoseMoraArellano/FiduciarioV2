@@ -82,9 +82,11 @@ try {
 
     <!-- Tabla -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="overflow-x-auto">
+        <!--<div class="overflow-x-auto"> -->
+            <div class="overflow-auto max-h-[65vh]">
             <table class="min-w-full divide-y divide-gray-200" role="table" x-ref="table">
-                <thead class="bg-gray-50">
+                <!--<thead class="bg-gray-50">-->
+                    <thead class="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
                     <tr>
                         <?php if ($isAdmin): ?>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" @click="sortBy('id')">

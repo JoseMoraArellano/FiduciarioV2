@@ -1,6 +1,6 @@
 <?php
-require_once '../config.php';
-require_once 'TokenManager.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/config.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/modules/qsq/TokenManager.php';
 date_default_timezone_set('America/Mexico_City');
 // Procesar solicitud de actualización
 $resultado = null;

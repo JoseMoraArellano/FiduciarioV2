@@ -1,5 +1,5 @@
 <?php
-require_once '../config.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/config.php';
 
 /**
  * Clase para gestionar la obtención y actualización de tokens
