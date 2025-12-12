@@ -5,6 +5,6 @@
 		$uri = 'http://';
 	}
 	$uri .= $_SERVER['HTTP_HOST'];
-	header('Location: '.$uri.'/dashboard.php/');
+	header('Location: '.$uri.'/dashboard.php');
 	exit;
 ?>
